@@ -68,6 +68,20 @@
         .thumbnail:active {
             transform: scale(0.95);
         }
+
+        /* Custom Purple Theme */
+        .primary-btn {
+            background-color: #874FC2;
+        }
+        .primary-btn:hover {
+            background-color: #6f3da1;
+        }
+        .primary-text {
+            color: #874FC2;
+        }
+        .primary-border {
+            border-color: #874FC2;
+        }
     </style>
 </head>
 <body class="tail-container bg-stone-50 text-stone-800 min-h-screen pb-20">
@@ -80,7 +94,7 @@
             
             <div class="flex items-center gap-3">
                 <select id="sort-select" onchange="changeSortOrder()"
-                        class="bg-white border border-stone-200 text-sm rounded-2xl px-4 py-2 focus:outline-none focus:border-amber-300">
+                        class="bg-white border border-stone-200 text-sm rounded-2xl px-4 py-2 focus:outline-none focus:border-[#874FC2]">
                     <option value="date-desc">添加日期 ↓</option>
                     <option value="date-asc">添加日期 ↑</option>
                     <option value="notes-asc">備註筆劃 ↑</option>
@@ -107,7 +121,7 @@
                     <span id="all-count" class="text-xs bg-stone-200 text-stone-600 px-2.5 py-1 rounded-full font-mono">0</span>
                 </h2>
                 <div onclick="showAddModal()" 
-                     class="flex items-center gap-2 bg-amber-600 hover:bg-amber-700 text-white text-sm font-medium px-5 py-2.5 rounded-3xl shadow-sm active:scale-95 transition-all cursor-pointer">
+                     class="flex items-center gap-2 primary-btn hover:brightness-110 text-white text-sm font-medium px-5 py-2.5 rounded-3xl shadow-sm active:scale-95 transition-all cursor-pointer">
                     <i class="fa-solid fa-plus"></i>
                     <span>新增記錄</span>
                 </div>
@@ -153,7 +167,7 @@
     <nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-stone-200 z-50">
         <div class="max-w-xl mx-auto">
             <div class="grid grid-cols-4 text-xs">
-                <button onclick="switchTab(0)" id="nav-0" class="flex flex-col items-center py-3 text-amber-600 border-t-2 border-amber-600">
+                <button onclick="switchTab(0)" id="nav-0" class="flex flex-col items-center py-3 primary-text border-t-2 border-[#874FC2]">
                     <i class="fa-solid fa-list-ul text-xl mb-1"></i>
                     <span class="font-medium">全部</span>
                 </button>
@@ -187,7 +201,7 @@
                     <label class="block text-sm font-medium text-stone-500 mb-3">商品照片</label>
                     <div id="photo-upload-area" 
                          onclick="document.getElementById('photo-input').click()"
-                         class="border-2 border-dashed border-stone-300 rounded-3xl h-64 flex flex-col items-center justify-center cursor-pointer hover:border-amber-300 transition-colors">
+                         class="border-2 border-dashed border-stone-300 rounded-3xl h-64 flex flex-col items-center justify-center cursor-pointer hover:border-[#874FC2] transition-colors">
                         <i class="fa-solid fa-camera text-4xl text-stone-300 mb-3"></i>
                         <p class="text-stone-400 text-sm">點擊上傳或拍照</p>
                     </div>
@@ -198,7 +212,7 @@
                         <div class="relative">
                             <img id="preview-img" class="w-full rounded-3xl shadow-sm" alt="預覽">
                             <button onclick="triggerPhotoReupload()" 
-                                    class="absolute bottom-4 left-4 bg-white shadow-md text-amber-600 w-9 h-9 rounded-2xl flex items-center justify-center border border-stone-200 hover:bg-amber-50">
+                                    class="absolute bottom-4 left-4 bg-white shadow-md text-[#874FC2] w-9 h-9 rounded-2xl flex items-center justify-center border border-stone-200 hover:bg-purple-50">
                                 <i class="fa-solid fa-pen text-lg"></i>
                             </button>
                             <button onclick="removePhoto()" 
@@ -213,7 +227,7 @@
                 <div>
                     <label class="block text-sm font-medium text-stone-500 mb-2">備註 / 商品名稱</label>
                     <textarea id="notes-input" rows="3"
-                        class="w-full border border-stone-200 focus:border-amber-400 rounded-3xl px-5 py-4 text-base resize-none focus:outline-none"
+                        class="w-full border border-stone-200 focus:border-[#874FC2] rounded-3xl px-5 py-4 text-base resize-none focus:outline-none"
                         placeholder="例如：無印良品 棉質 T 恤"></textarea>
                 </div>
                 
@@ -228,7 +242,7 @@
                 <button onclick="hideAddModal()" class="flex-1 py-4 text-stone-500 font-medium border border-stone-200 rounded-3xl active:bg-stone-100">
                     取消
                 </button>
-                <button onclick="saveRecord()" class="flex-1 py-4 bg-amber-600 hover:bg-amber-700 text-white font-medium rounded-3xl active:scale-95 transition-all">
+                <button onclick="saveRecord()" class="flex-1 py-4 primary-btn text-white font-medium rounded-3xl active:scale-95 transition-all">
                     保存記錄
                 </button>
             </div>
@@ -302,7 +316,7 @@
                         <i class="fa-solid fa-download"></i>
                         <span>下載備份 JSON</span>
                     </button>
-                    <button onclick="document.getElementById('import-input-backup').click()" class="w-full py-4 bg-amber-600 text-white rounded-3xl flex items-center justify-center gap-3 text-base font-medium">
+                    <button onclick="document.getElementById('import-input-backup').click()" class="w-full py-4 primary-btn text-white rounded-3xl flex items-center justify-center gap-3 text-base font-medium">
                         <i class="fa-solid fa-upload"></i>
                         <span>匯入備份</span>
                     </button>
@@ -421,10 +435,10 @@
             for (let i = 0; i < 4; i++) {
                 const navBtn = document.getElementById(`nav-${i}`);
                 if (i === tabIndex) {
-                    navBtn.classList.add('text-amber-600', 'border-t-2', 'border-amber-600');
+                    navBtn.classList.add('primary-text', 'border-t-2', 'border-[#874FC2]');
                     navBtn.classList.remove('text-stone-400');
                 } else {
-                    navBtn.classList.remove('text-amber-600', 'border-t-2', 'border-amber-600');
+                    navBtn.classList.remove('primary-text', 'border-t-2', 'border-[#874FC2]');
                     navBtn.classList.add('text-stone-400');
                 }
             }
@@ -484,7 +498,7 @@
             STATUS_OPTIONS.forEach(status => {
                 const isSelected = status.key === selectedStatus;
                 const btn = document.createElement('button');
-                btn.className = `flex flex-col items-center py-4 rounded-3xl border transition-all ${isSelected ? `border-${status.color}-400 bg-${status.color}-50` : 'border-transparent hover:bg-stone-100'}`;
+                btn.className = `flex flex-col items-center py-4 rounded-3xl border transition-all ${isSelected ? `border-[#874FC2] bg-[#874FC2]/10` : 'border-transparent hover:bg-stone-100'}`;
                 btn.innerHTML = `<span class="text-4xl mb-2">${status.emoji}</span><span class="text-xs font-medium">${status.label}</span>`;
                 btn.onclick = () => { currentStatus = status.key; renderStatusOptions(currentStatus); };
                 container.appendChild(btn);
@@ -612,9 +626,7 @@
             const record = records.find(r => r.id === currentDetailId);
             if (record) {
                 hideDetailModal();
-                setTimeout(() => {
-                    showAddModal(record);
-                }, 300);
+                setTimeout(() => showAddModal(record), 280);
             }
         }
         
@@ -687,7 +699,6 @@
             loadRecords();
             switchTab(0);
             
-            // Modal background close
             const addModal = document.getElementById('add-modal');
             const detailModal = document.getElementById('detail-modal');
             
@@ -699,7 +710,7 @@
                 if (e.target === detailModal) hideDetailModal();
             });
             
-            console.log('%c✅ 早買早享受 App 已更新', 'color:#ca8a04; font-family:monospace');
+            console.log('%c✅ 早買早享受 App (紫色主題) 已就緒', 'color:#874FC2; font-family:monospace');
         }
         
         window.onload = initializeApp;
