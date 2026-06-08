@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>早買早享受</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500&amp;family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    <style>
+        body { font-family: 'Noto Sans TC', 'Noto Sans JP', system-ui, sans-serif; }
+        .tail-container { max-width: 480px; margin: 0 auto; min-height: 100vh; background: #F9F7F2; }
+        .card { background: white; border-radius: 20px; box-shadow: 0 4px 12px rgba(92, 107, 106, 0.08); }
+        .photo-grid { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fill, minmax(148px, 1fr)); 
+            gap: 14px; 
+        }
+        .photo-item { 
+            position: relative; 
+            border-radius: 16px; 
+            overflow: hidden; 
+            background: white;
+        }
+        .photo-item img { 
+            width: 100%; 
+            height: 165px; 
+            object-fit: cover; 
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.6);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+    </style>
+</head>
+<body class="bg-[#F9F7F2]">
+    <div class="tail-container flex flex-col">
+        <!-- Header -->
+        <header class="bg-white border-b px-6 py-5">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <i class="fa-solid fa-bear text-3xl text-[#5C6B6A]"></i>
+                    <h1 class="text-2xl font-medium">早買早享受</h1>
+                </div>
+                <button onclick="clearAllData()" class="text-red-300 hover:text-red-500">
+                    <i class="fa-solid fa-trash-can"></i>
+                </button>
+            </div>
+        </header>
+
+        <main class="flex-1 overflow-y-auto p-5 pb-20">
+            <!-- 上傳區域 -->
+            <div class="card p-6 mb-8">
+                <h2 class="font-medium mb-4">📸 上傳新物品</h2>
+                
+                <div onclick="document.getElementById('photo-input').click()" 
+                     class="border-2 border-dashed border-neutral-300 rounded-3xl h-52 flex flex-col items-center justify-center cursor-pointer hover:border-[#5C6B6A]">
+                    <i class="fa-solid fa-camera text-5xl text-neutral-300 mb-3"></i>
+                    <p class="text-neutral-500">拍照或選擇相片</p>
+                </div>
+                <input type="file" id="photo-input" accept="image/*" class="hidden" onchange="handlePhotoUpload(event)">
+                
+                <input id="item-note" type="text" placeholder="備註（可留空）" 
+                       class="w-full mt-5 px-5 py-4 border border-neutral-200 rounded-2xl focus:outline-none">
+                
+                <button onclick="addItem()" 
+                        class="w-full mt-6 bg-[#5C6B6A] text-white py-4 rounded-2xl font-medium">
+                    加入紀錄
+                </button>
+            </div>
+
+            <!-- 下拉清單 -->
+            <div class="flex items-center gap-3 mb-6 px-1">
+                <span class="text-sm text-neutral-500">顯示：</span>
+                <select id="status-filter" onchange="filterItems()" 
+                        class="flex-1 bg-white border border-neutral-200 rounded-2xl px-5 py-3 text-base">
+                    <option value="all">全部物品</option>
+                    <option value="paid">💸 已俾錢</option>
+                    <option value="arrived">📮 已到貨</option>
+                    <option value="home">🏠 返屋企</option>
+                </select>
+            </div>
+
+            <div id="purchase-grid" class="photo-grid"></div>
+        </main>
+    </div>
+
+    <!-- 編輯 Modal -->
+    <div id="edit-modal" class="modal">
+        <div class="bg-white rounded-3xl w-[92%] max-w-[420px] p-6">
+            <h3 class="font-medium text-lg mb-4">編輯物品</h3>
+            
+            <div class="mb-4">
+                <img id="modal-photo-preview" class="w-full h-52 object-cover rounded-2xl">
+            </div>
+            
+            <div onclick="document.getElementById('edit-photo-input').click()" 
+                 class="border border-dashed border-neutral-300 rounded-2xl py-3 text-center text-sm cursor-pointer hover:border-[#5C6B6A]">
+                點擊更換照片
+            </div>
+            <input type="file" id="edit-photo-input" accept="image/*" class="hidden" onchange="handleEditPhotoUpload(event)">
+            
+            <input id="edit-note" type="text" placeholder="備註" 
+                   class="w-full mt-5 px-5 py-4 border border-neutral-200 rounded-2xl focus:outline-none">
+            
+            <div class="flex gap-3 mt-6">
+                <button onclick="closeModal()" 
+                        class="flex-1 py-4 border border-neutral-200 rounded-2xl">取消</button>
+                <button onclick="saveEdit()" 
+                        class="flex-1 py-4 bg-[#5C6B6A] text-white rounded-2xl">儲存修改</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let items = [];
+        const STORAGE_KEY = "muji_shopping_items";
+        let currentEditingId = null;
+        let tempNewPhoto = null;
+
+        function loadData() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (saved) items = JSON.parse(saved);
+            renderItems();
+        }
+
+        function saveData() {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+        }
+
+        let tempPhoto = null;
+
+        function handlePhotoUpload(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            processImage(file, (base64) => {
+                tempPhoto = base64;
+                alert("✅ 照片已壓縮完成！");
+            });
+        }
+
+        function handleEditPhotoUpload(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            processImage(file, (base64) => {
+                tempNewPhoto = base64;
+                document.getElementById("modal-photo-preview").src = base64;
+            });
+        }
+
+        function processImage(file, callback) {
+            const reader = new FileReader();
+            reader.onload = function(ev) {
+                const img = new Image();
+                img.onload = function() {
+                    const canvas = document.createElement('canvas');
+                    let w = img.width, h = img.height;
+                    if (w > 700) { h = Math.round(h * 700 / w); w = 700; }
+                    canvas.width = w; canvas.height = h;
+                    canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+                    callback(canvas.toDataURL('image/jpeg', 0.78));
+                };
+                img.src = ev.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function addItem() {
+            if (!tempPhoto) return alert("請先上傳照片！");
+
+            items.unshift({
+                id: Date.now(),
+                note: document.getElementById("item-note").value.trim() || "無備註",
+                photo: tempPhoto,
+                paid: false,
+                arrived: false,
+                home: false,
+                date: new Date().toISOString()
+            });
+
+            saveData();
+            tempPhoto = null;
+            document.getElementById("item-note").value = "";
+            renderItems();
+        }
+
+        function toggleStatus(id, field) {
+            const item = items.find(i => i.id === id);
+            if (item) {
+                item[field] = !item[field];
+                saveData();
+                renderItems();
+            }
+        }
+
+        function deleteItem(id) {
+            if (confirm("確定刪除這筆紀錄？")) {
+                items = items.filter(i => i.id !== id);
+                saveData();
+                renderItems();
+            }
+        }
+
+        function editItem(id) {
+            const item = items.find(i => i.id === id);
+            if (!item) return;
+            
+            currentEditingId = id;
+            tempNewPhoto = null;
+            
+            document.getElementById("modal-photo-preview").src = item.photo;
+            document.getElementById("edit-note").value = item.note === "無備註" ? "" : item.note;
+            document.getElementById("edit-modal").style.display = "flex";
+        }
+
+        function saveEdit() {
+            if (!currentEditingId) return;
+            
+            const item = items.find(i => i.id === currentEditingId);
+            if (item) {
+                const newNote = document.getElementById("edit-note").value.trim();
+                item.note = newNote || "無備註";
+                
+                if (tempNewPhoto) {
+                    item.photo = tempNewPhoto;
+                }
+                
+                saveData();
+                closeModal();
+                renderItems();
+            }
+        }
+
+        function closeModal() {
+            document.getElementById("edit-modal").style.display = "none";
+            currentEditingId = null;
+            tempNewPhoto = null;
+        }
+
+        function renderItems() {
+            const container = document.getElementById("purchase-grid");
+            const filter = document.getElementById("status-filter").value;
+            
+            const filtered = filter === 'all' 
+                ? items 
+                : items.filter(item => item[filter]);
+
+            container.innerHTML = "";
+
+            if (filtered.length === 0) {
+                container.innerHTML = `<div class="col-span-full text-center py-20 text-neutral-400">暫無紀錄</div>`;
+                return;
+            }
+
+            filtered.forEach(item => {
+                const div = document.createElement("div");
+                div.className = "photo-item card relative";
+                div.innerHTML = `
+                    <img src="${item.photo}" alt="${item.note}" onclick="editItem(${item.id})">
+                    <div class="p-3">
+                        <div class="text-sm font-medium leading-tight">${item.note}</div>
+                        <div class="text-xs text-neutral-400 mt-1">${new Date(item.date).toLocaleDateString('zh-TW')}</div>
+                    </div>
+                    
+                    <div class="grid grid-cols-3 gap-1 p-2 border-t text-center text-lg">
+                        <button onclick="toggleStatus(${item.id}, 'paid')" 
+                                class="py-2 rounded-xl ${item.paid ? 'bg-green-100 text-green-700' : 'bg-neutral-100'}">💸</button>
+                        <button onclick="toggleStatus(${item.id}, 'arrived')" 
+                                class="py-2 rounded-xl ${item.arrived ? 'bg-blue-100 text-blue-700' : 'bg-neutral-100'}">📮</button>
+                        <button onclick="toggleStatus(${item.id}, 'home')" 
+                                class="py-2 rounded-xl ${item.home ? 'bg-amber-100 text-amber-700' : 'bg-neutral-100'}">🏠</button>
+                    </div>
+                    
+                    <button onclick="editItem(${item.id}); event.stopImmediatePropagation()" 
+                            class="absolute top-3 left-3 bg-white rounded-full w-7 h-7 flex items-center justify-center shadow text-[#5C6B6A]">
+                        <i class="fa-solid fa-pen text-xs"></i>
+                    </button>
+                    
+                    <button onclick="deleteItem(${item.id}); event.stopImmediatePropagation()" 
+                            class="absolute top-3 right-3 bg-white rounded-full w-7 h-7 flex items-center justify-center shadow text-red-400">
+                        <i class="fa-solid fa-trash text-xs"></i>
+                    </button>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        function filterItems() {
+            renderItems();
+        }
+
+        function clearAllData() {
+            if (confirm("⚠️ 確定清除所有紀錄嗎？此動作無法復原！")) {
+                localStorage.clear();
+                items = [];
+                renderItems();
+            }
+        }
+
+        window.onload = loadData;
+    </script>
+</body>
+</html>
