@@ -30,6 +30,16 @@
         
         .detail-image-container {
             position: relative;
+            max-height: 45vh;
+        }
+        
+        #detail-img {
+            width: 100%;
+            height: auto;
+            max-height: 45vh;
+            object-fit: contain;
+            border-radius: 1.5rem;
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1);
         }
         
         .nav-arrow {
@@ -43,7 +53,7 @@
             border: 1px solid #e7e5e4;
             box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
             transition: all 0.2s ease;
-            z-index: 10;
+            z-index: 20;
         }
         
         .nav-arrow:hover {
@@ -90,7 +100,6 @@
 
     <!-- Main Content -->
     <main class="max-w-xl mx-auto px-4 pt-6" id="main-content">
-        <!-- All Items Tab -->
         <div id="tab-all" class="tab-content">
             <div class="flex justify-between items-center mb-6">
                 <h2 class="text-lg font-medium flex items-center gap-2">
@@ -103,11 +112,9 @@
                     <span>新增記錄</span>
                 </div>
             </div>
-            
             <div id="all-grid" class="grid grid-cols-2 gap-4"></div>
         </div>
 
-        <!-- Paid Tab -->
         <div id="tab-paid" class="tab-content hidden">
             <div class="flex justify-between items-center mb-6">
                 <h2 class="text-lg font-medium flex items-center gap-2">
@@ -119,7 +126,6 @@
             <div id="paid-grid" class="grid grid-cols-2 gap-4"></div>
         </div>
 
-        <!-- Shipped Tab -->
         <div id="tab-shipped" class="tab-content hidden">
             <div class="flex justify-between items-center mb-6">
                 <h2 class="text-lg font-medium flex items-center gap-2">
@@ -131,7 +137,6 @@
             <div id="shipped-grid" class="grid grid-cols-2 gap-4"></div>
         </div>
 
-        <!-- Home Tab -->
         <div id="tab-home" class="tab-content hidden">
             <div class="flex justify-between items-center mb-6">
                 <h2 class="text-lg font-medium flex items-center gap-2">
@@ -177,7 +182,7 @@
             </div>
             
             <div class="flex-1 overflow-auto p-6 space-y-8">
-                <!-- Photo Upload -->
+                <!-- Photo -->
                 <div>
                     <label class="block text-sm font-medium text-stone-500 mb-3">商品照片</label>
                     <div id="photo-upload-area" 
@@ -189,11 +194,9 @@
                     
                     <input type="file" id="photo-input" accept="image/*" class="hidden" onchange="handlePhotoSelect(event)">
                     
-                    <!-- Preview with Edit Pencil -->
                     <div id="photo-preview" class="hidden mt-4 relative">
                         <div class="relative">
                             <img id="preview-img" class="w-full rounded-3xl shadow-sm" alt="預覽">
-                            <!-- Pencil button on photo -->
                             <button onclick="triggerPhotoReupload()" 
                                     class="absolute bottom-4 left-4 bg-white shadow-md text-amber-600 w-9 h-9 rounded-2xl flex items-center justify-center border border-stone-200 hover:bg-amber-50">
                                 <i class="fa-solid fa-pen text-lg"></i>
@@ -208,18 +211,10 @@
                 
                 <!-- Notes -->
                 <div>
-                    <label class="block text-sm font-medium text-stone-500 mb-2">備註 / 商品名稱 
-                        <span class="text-amber-600 text-xs ml-1">(可直接修改)</span>
-                    </label>
-                    <div class="relative">
-                        <textarea id="notes-input" rows="3"
-                            class="w-full border border-stone-200 focus:border-amber-400 rounded-3xl px-5 py-4 text-base resize-none focus:outline-none"
-                            placeholder="例如：無印良品 棉質 T 恤"></textarea>
-                        <!-- Pencil indicator -->
-                        <div class="absolute bottom-4 right-5 text-amber-500">
-                            <i class="fa-solid fa-pen text-sm"></i>
-                        </div>
-                    </div>
+                    <label class="block text-sm font-medium text-stone-500 mb-2">備註 / 商品名稱</label>
+                    <textarea id="notes-input" rows="3"
+                        class="w-full border border-stone-200 focus:border-amber-400 rounded-3xl px-5 py-4 text-base resize-none focus:outline-none"
+                        placeholder="例如：無印良品 棉質 T 恤"></textarea>
                 </div>
                 
                 <!-- Status -->
@@ -244,21 +239,17 @@
     <div id="detail-modal" class="hidden fixed inset-0 bg-black/70 flex items-end z-[100]">
         <div class="modal bg-white w-full max-w-xl mx-auto rounded-t-3xl overflow-hidden">
             <div class="p-6">
-                <div class="flex justify-end mb-2">
+                <div class="flex justify-end mb-4">
                     <button onclick="hideDetailModal()" class="text-3xl text-stone-400 hover:text-stone-600">×</button>
                 </div>
                 
-                <!-- Image with arrows -->
                 <div id="detail-image-container" class="detail-image-container mb-6">
-                    <img id="detail-img" class="w-full rounded-3xl shadow-sm" alt="">
+                    <img id="detail-img" alt="商品照片">
                     
-                    <!-- Left Arrow -->
                     <button onclick="prevRecord()" 
                             class="nav-arrow left-4 flex items-center justify-center text-2xl text-stone-700 rounded-2xl">
                         ←
                     </button>
-                    
-                    <!-- Right Arrow -->
                     <button onclick="nextRecord()" 
                             class="nav-arrow right-4 flex items-center justify-center text-2xl text-stone-700 rounded-2xl">
                         →
@@ -284,7 +275,7 @@
             
             <div class="border-t p-6 flex gap-3">
                 <button onclick="editCurrentRecord()" 
-                        class="flex-1 py-4 border border-stone-300 rounded-3xl text-stone-700 font-medium flex items-center justify-center gap-2 hover:bg-stone-50 active:bg-stone-100">
+                        class="flex-1 py-4 border border-stone-300 rounded-3xl text-stone-700 font-medium flex items-center justify-center gap-2 hover:bg-stone-50">
                     <i class="fa-solid fa-pen"></i>
                     <span>編輯</span>
                 </button>
@@ -306,13 +297,11 @@
                     建議定期備份您的資料。<br>
                     換手機時只需匯入 JSON 檔案即可恢復所有記錄。
                 </p>
-                
                 <div class="my-8 space-y-4">
                     <button onclick="exportData()" class="w-full py-4 bg-white border-2 border-stone-300 hover:border-stone-400 rounded-3xl flex items-center justify-center gap-3 text-base font-medium">
                         <i class="fa-solid fa-download"></i>
                         <span>下載備份 JSON</span>
                     </button>
-                    
                     <button onclick="document.getElementById('import-input-backup').click()" class="w-full py-4 bg-amber-600 text-white rounded-3xl flex items-center justify-center gap-3 text-base font-medium">
                         <i class="fa-solid fa-upload"></i>
                         <span>匯入備份</span>
@@ -320,7 +309,6 @@
                     <input type="file" id="import-input-backup" accept=".json" class="hidden" onchange="importData(event)">
                 </div>
             </div>
-            
             <div class="bg-stone-50 px-8 py-6 text-center border-t">
                 <button onclick="hideBackupModal()" class="text-stone-400 hover:text-stone-600 font-medium">關閉</button>
             </div>
@@ -354,29 +342,19 @@
         
         function sortRecords(recs) {
             const sorted = [...recs];
-            if (currentSortOrder === 'date-desc') {
-                sorted.sort((a, b) => b.timestamp - a.timestamp);
-            } else if (currentSortOrder === 'date-asc') {
-                sorted.sort((a, b) => a.timestamp - b.timestamp);
-            } else if (currentSortOrder === 'notes-asc') {
-                sorted.sort((a, b) => (a.notes || '').localeCompare(b.notes || '', 'zh-HK'));
-            }
+            if (currentSortOrder === 'date-desc') sorted.sort((a, b) => b.timestamp - a.timestamp);
+            else if (currentSortOrder === 'date-asc') sorted.sort((a, b) => a.timestamp - b.timestamp);
+            else if (currentSortOrder === 'notes-asc') sorted.sort((a, b) => (a.notes || '').localeCompare(b.notes || '', 'zh-HK'));
             return sorted;
         }
         
         function renderGrid(containerId, filteredRecords) {
             const container = document.getElementById(containerId);
             container.innerHTML = '';
-            
             const sorted = sortRecords(filteredRecords);
             
             if (sorted.length === 0) {
-                container.innerHTML = `
-                    <div class="col-span-2 py-12 text-center">
-                        <div class="mx-auto w-16 h-16 bg-stone-100 rounded-3xl flex items-center justify-center text-4xl mb-4">📦</div>
-                        <p class="text-stone-400">暫無記錄</p>
-                    </div>
-                `;
+                container.innerHTML = `<div class="col-span-2 py-12 text-center"><div class="mx-auto w-16 h-16 bg-stone-100 rounded-3xl flex items-center justify-center text-4xl mb-4">📦</div><p class="text-stone-400">暫無記錄</p></div>`;
                 return;
             }
             
@@ -390,8 +368,7 @@
                     <div class="p-4">
                         <div class="flex justify-between items-start gap-2">
                             <div class="text-sm line-clamp-2 font-medium flex-1">${record.notes || '無備註'}</div>
-                            <div onclick="event.stopImmediatePropagation(); changeStatus('${record.id}');" 
-                                 class="status-badge bg-${getStatusColor(record.status)}-100 text-${getStatusColor(record.status)}-700 whitespace-nowrap">
+                            <div onclick="event.stopImmediatePropagation(); changeStatus('${record.id}');" class="status-badge bg-${getStatusColor(record.status)}-100 text-${getStatusColor(record.status)}-700 whitespace-nowrap">
                                 ${getStatusEmoji(record.status)}
                             </div>
                         </div>
@@ -467,8 +444,10 @@
         }
         
         function showPhotoPreview(src) {
-            document.getElementById('photo-preview').classList.remove('hidden');
-            document.getElementById('photo-upload-area').classList.add('hidden');
+            const preview = document.getElementById('photo-preview');
+            const uploadArea = document.getElementById('photo-upload-area');
+            preview.classList.remove('hidden');
+            uploadArea.classList.add('hidden');
             document.getElementById('preview-img').src = src;
         }
         
@@ -478,19 +457,12 @@
                 let width = img.width, height = img.height;
                 const MAX_DIM = 900;
                 if (width > MAX_DIM || height > MAX_DIM) {
-                    if (width > height) {
-                        height = Math.round(height * MAX_DIM / width);
-                        width = MAX_DIM;
-                    } else {
-                        width = Math.round(width * MAX_DIM / height);
-                        height = MAX_DIM;
-                    }
+                    if (width > height) { height = Math.round(height * MAX_DIM / width); width = MAX_DIM; }
+                    else { width = Math.round(width * MAX_DIM / height); height = MAX_DIM; }
                 }
                 const canvas = document.createElement('canvas');
-                canvas.width = width;
-                canvas.height = height;
-                const ctx = canvas.getContext('2d');
-                ctx.drawImage(img, 0, 0, width, height);
+                canvas.width = width; canvas.height = height;
+                canvas.getContext('2d').drawImage(img, 0, 0, width, height);
                 callback(canvas.toDataURL('image/jpeg', 0.82));
             };
             img.src = base64;
@@ -504,7 +476,6 @@
             currentPhotoBase64 = null;
             document.getElementById('photo-preview').classList.add('hidden');
             document.getElementById('photo-upload-area').classList.remove('hidden');
-            document.getElementById('photo-input').value = '';
         }
         
         function renderStatusOptions(selectedStatus = 'paid') {
@@ -513,17 +484,9 @@
             STATUS_OPTIONS.forEach(status => {
                 const isSelected = status.key === selectedStatus;
                 const btn = document.createElement('button');
-                btn.className = `flex flex-col items-center py-4 rounded-3xl border transition-all ${isSelected ? 
-                    `border-${status.color}-400 bg-${status.color}-50` : 
-                    'border-transparent hover:bg-stone-100'}`;
-                btn.innerHTML = `
-                    <span class="text-4xl mb-2">${status.emoji}</span>
-                    <span class="text-xs font-medium">${status.label}</span>
-                `;
-                btn.onclick = () => {
-                    currentStatus = status.key;
-                    renderStatusOptions(currentStatus);
-                };
+                btn.className = `flex flex-col items-center py-4 rounded-3xl border transition-all ${isSelected ? `border-${status.color}-400 bg-${status.color}-50` : 'border-transparent hover:bg-stone-100'}`;
+                btn.innerHTML = `<span class="text-4xl mb-2">${status.emoji}</span><span class="text-xs font-medium">${status.label}</span>`;
+                btn.onclick = () => { currentStatus = status.key; renderStatusOptions(currentStatus); };
                 container.appendChild(btn);
             });
         }
@@ -535,37 +498,38 @@
             currentPhotoBase64 = editRecord ? editRecord.image : null;
             
             document.getElementById('modal-title').textContent = editRecord ? '編輯記錄' : '新增記錄';
-            document.getElementById('notes-input').value = editRecord ? editRecord.notes : '';
+            document.getElementById('notes-input').value = editRecord ? (editRecord.notes || '') : '';
             
-            const previewContainer = document.getElementById('photo-preview');
+            const preview = document.getElementById('photo-preview');
             const uploadArea = document.getElementById('photo-upload-area');
             
             if (editRecord && editRecord.image) {
-                previewContainer.classList.remove('hidden');
+                preview.classList.remove('hidden');
                 uploadArea.classList.add('hidden');
                 document.getElementById('preview-img').src = editRecord.image;
             } else {
-                previewContainer.classList.add('hidden');
+                preview.classList.add('hidden');
                 uploadArea.classList.remove('hidden');
             }
             
             currentStatus = editRecord ? editRecord.status : 'paid';
             renderStatusOptions(currentStatus);
             
-            document.getElementById('add-modal').classList.remove('hidden');
-            document.getElementById('add-modal').classList.add('flex');
+            const modal = document.getElementById('add-modal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
         }
         
         function hideAddModal() {
-            document.getElementById('add-modal').classList.add('hidden');
-            document.getElementById('add-modal').classList.remove('flex');
+            const modal = document.getElementById('add-modal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
             currentPhotoBase64 = null;
             currentEditId = null;
         }
         
         function saveRecord() {
             const notes = document.getElementById('notes-input').value.trim();
-            
             if (!currentPhotoBase64 && !currentEditId) {
                 alert('請上傳一張照片！');
                 return;
@@ -606,19 +570,19 @@
             if (!record) return;
             
             document.getElementById('detail-img').src = record.image;
-            document.getElementById('detail-notes').textContent = record.notes;
+            document.getElementById('detail-notes').textContent = record.notes || '無備註';
             document.getElementById('detail-time').textContent = new Date(record.timestamp).toLocaleString('zh-HK');
             
             const statusContainer = document.getElementById('detail-status');
             statusContainer.innerHTML = `
-                <div onclick="changeStatusFromDetail()" 
-                     class="cursor-pointer status-badge bg-${getStatusColor(record.status)}-100 text-${getStatusColor(record.status)}-700 px-6 py-2 text-base flex items-center gap-2">
+                <div onclick="changeStatusFromDetail()" class="cursor-pointer status-badge bg-${getStatusColor(record.status)}-100 text-${getStatusColor(record.status)}-700 px-6 py-2 text-base flex items-center gap-2">
                     ${getStatusEmoji(record.status)} ${STATUS_OPTIONS.find(s => s.key === record.status).label}
                 </div>
             `;
             
-            document.getElementById('detail-modal').classList.remove('hidden');
-            document.getElementById('detail-modal').classList.add('flex');
+            const modal = document.getElementById('detail-modal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
         }
         
         function prevRecord() {
@@ -638,15 +602,20 @@
         }
         
         function hideDetailModal() {
-            document.getElementById('detail-modal').classList.add('hidden');
-            document.getElementById('detail-modal').classList.remove('flex');
+            const modal = document.getElementById('detail-modal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
             currentDetailId = null;
         }
         
         function editCurrentRecord() {
-            hideDetailModal();
             const record = records.find(r => r.id === currentDetailId);
-            if (record) showAddModal(record);
+            if (record) {
+                hideDetailModal();
+                setTimeout(() => {
+                    showAddModal(record);
+                }, 300);
+            }
         }
         
         function deleteCurrentRecord() {
@@ -699,7 +668,7 @@
                 try {
                     const imported = JSON.parse(ev.target.result);
                     if (!Array.isArray(imported)) throw new Error();
-                    if (confirm(`即將匯入 ${imported.length} 筆記錄。\n\n現有資料將被替換，確定繼續？`)) {
+                    if (confirm(`即將匯入 ${imported.length} 筆記錄。\n現有資料將被替換，確定繼續？`)) {
                         records = imported;
                         saveToStorage();
                         renderAll();
@@ -714,26 +683,23 @@
             e.target.value = '';
         }
         
-        function handleKeyPress(e) {
-            if (e.key === "Escape") {
-                if (!document.getElementById('add-modal').classList.contains('hidden')) hideAddModal();
-                else if (!document.getElementById('detail-modal').classList.contains('hidden')) hideDetailModal();
-                else if (!document.getElementById('backup-modal').classList.contains('hidden')) hideBackupModal();
-            }
-        }
-        
         function initializeApp() {
             loadRecords();
             switchTab(0);
-            document.addEventListener('keydown', handleKeyPress);
             
-            // Close modals when clicking background
-            document.getElementById('add-modal').addEventListener('click', e => {
-                if (e.target.id === 'add-modal') hideAddModal();
+            // Modal background close
+            const addModal = document.getElementById('add-modal');
+            const detailModal = document.getElementById('detail-modal');
+            
+            addModal.addEventListener('click', (e) => {
+                if (e.target === addModal) hideAddModal();
             });
-            document.getElementById('detail-modal').addEventListener('click', e => {
-                if (e.target.id === 'detail-modal') hideDetailModal();
+            
+            detailModal.addEventListener('click', (e) => {
+                if (e.target === detailModal) hideDetailModal();
             });
+            
+            console.log('%c✅ 早買早享受 App 已更新', 'color:#ca8a04; font-family:monospace');
         }
         
         window.onload = initializeApp;
