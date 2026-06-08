@@ -1,309 +1,774 @@
 <!DOCTYPE html>
-<html lang="zh-TW">
+<html lang="zh-HK">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>早買早享受</title>
+    <title>我的購買記錄</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500&amp;family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
-    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&amp;family=Noto+Sans+HK:wght@400;500;700&amp;display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Noto Sans TC', 'Noto Sans JP', system-ui, sans-serif; }
-        .tail-container { max-width: 480px; margin: 0 auto; min-height: 100vh; background: #F9F7F2; }
-        .card { background: white; border-radius: 20px; box-shadow: 0 4px 12px rgba(92, 107, 106, 0.08); }
-        .photo-grid { 
-            display: grid; 
-            grid-template-columns: repeat(auto-fill, minmax(148px, 1fr)); 
-            gap: 14px; 
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&amp;family=Noto+Sans+HK:wght@400;500;700&amp;display=swap');
+        
+        :root {
+            --primary: 234 179 8;
         }
-        .photo-item { 
-            position: relative; 
-            border-radius: 16px; 
-            overflow: hidden; 
-            background: white;
+        
+        .tail-container {
+            font-family: 'Noto Sans HK', 'Noto Sans SC', system-ui, -apple-system, sans-serif;
         }
-        .photo-item img { 
-            width: 100%; 
-            height: 165px; 
-            object-fit: cover; 
+        
+        .card {
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
         }
+        
+        .card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+        }
+        
+        .photo-container {
+            aspect-ratio: 1 / 1;
+            overflow: hidden;
+        }
+        
+        .bottom-nav {
+            box-shadow: 0 -1px 3px rgba(0, 0, 0, 0.1);
+        }
+        
+        .status-badge {
+            font-size: 0.75rem;
+            padding: 2px 10px;
+            border-radius: 9999px;
+        }
+        
         .modal {
-            display: none;
-            position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0,0,0,0.6);
-            z-index: 1000;
-            align-items: center;
-            justify-content: center;
+            animation: modalPop 0.3s ease forwards;
+        }
+        
+        @keyframes modalPop {
+            from {
+                opacity: 0;
+                transform: scale(0.95) translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+        
+        .thumbnail {
+            transition: transform 0.3s ease;
+        }
+        
+        .thumbnail:active {
+            transform: scale(0.95);
         }
     </style>
 </head>
-<body class="bg-[#F9F7F2]">
-    <div class="tail-container flex flex-col">
-        <!-- Header -->
-        <header class="bg-white border-b px-6 py-5">
-            <div class="flex items-center justify-between">
-                <div class="flex items-center gap-3">
-                    <i class="fa-solid fa-bear text-3xl text-[#5C6B6A]"></i>
-                    <h1 class="text-2xl font-medium">早買早享受</h1>
+<body class="tail-container bg-stone-50 text-stone-800 min-h-screen pb-20">
+    <!-- Header -->
+    <header class="bg-white border-b border-stone-200 sticky top-0 z-50">
+        <div class="max-w-xl mx-auto px-4 py-4 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-8 h-8 bg-amber-100 text-amber-600 rounded-2xl flex items-center justify-center text-xl">
+                    📦
                 </div>
-                <button onclick="clearAllData()" class="text-red-300 hover:text-red-500">
-                    <i class="fa-solid fa-trash-can"></i>
+                <div>
+                    <h1 class="text-xl font-semibold tracking-tight">購買記錄</h1>
+                    <p class="text-xs text-stone-500 -mt-1">日系無印風</p>
+                </div>
+            </div>
+            
+            <div class="flex items-center gap-2">
+                <button onclick="showBackupModal()" 
+                        class="w-9 h-9 flex items-center justify-center text-stone-500 hover:text-stone-700 transition-colors">
+                    <i class="fa-solid fa-download text-lg"></i>
+                </button>
+                <button onclick="document.getElementById('import-input').click()" 
+                        class="w-9 h-9 flex items-center justify-center text-stone-500 hover:text-stone-700 transition-colors">
+                    <i class="fa-solid fa-upload text-lg"></i>
                 </button>
             </div>
-        </header>
+        </div>
+    </header>
 
-        <main class="flex-1 overflow-y-auto p-5 pb-20">
-            <!-- 上傳區域 -->
-            <div class="card p-6 mb-8">
-                <h2 class="font-medium mb-4">📸 上傳新物品</h2>
-                
-                <div onclick="document.getElementById('photo-input').click()" 
-                     class="border-2 border-dashed border-neutral-300 rounded-3xl h-52 flex flex-col items-center justify-center cursor-pointer hover:border-[#5C6B6A]">
-                    <i class="fa-solid fa-camera text-5xl text-neutral-300 mb-3"></i>
-                    <p class="text-neutral-500">拍照或選擇相片</p>
+    <!-- Main Content -->
+    <main class="max-w-xl mx-auto px-4 pt-6" id="main-content">
+        <!-- All Items Tab -->
+        <div id="tab-all" class="tab-content">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-lg font-medium flex items-center gap-2">
+                    <span>全部記錄</span>
+                    <span id="all-count" class="text-xs bg-stone-200 text-stone-600 px-2.5 py-1 rounded-full font-mono">0</span>
+                </h2>
+                <div onclick="showAddModal()" 
+                     class="flex items-center gap-2 bg-amber-600 hover:bg-amber-700 text-white text-sm font-medium px-5 py-2.5 rounded-3xl shadow-sm active:scale-95 transition-all cursor-pointer">
+                    <i class="fa-solid fa-plus"></i>
+                    <span>新增記錄</span>
                 </div>
-                <input type="file" id="photo-input" accept="image/*" class="hidden" onchange="handlePhotoUpload(event)">
-                
-                <input id="item-note" type="text" placeholder="備註（可留空）" 
-                       class="w-full mt-5 px-5 py-4 border border-neutral-200 rounded-2xl focus:outline-none">
-                
-                <button onclick="addItem()" 
-                        class="w-full mt-6 bg-[#5C6B6A] text-white py-4 rounded-2xl font-medium">
-                    加入紀錄
+            </div>
+            
+            <div id="all-grid" class="grid grid-cols-2 gap-4">
+                <!-- Populated by JS -->
+            </div>
+        </div>
+
+        <!-- Paid Tab -->
+        <div id="tab-paid" class="tab-content hidden">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-lg font-medium flex items-center gap-2">
+                    <span class="text-emerald-600">💸</span>
+                    <span>已付款</span>
+                </h2>
+                <span id="paid-count" class="text-xs bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full">0 件</span>
+            </div>
+            <div id="paid-grid" class="grid grid-cols-2 gap-4">
+                <!-- Populated by JS -->
+            </div>
+        </div>
+
+        <!-- Shipped Tab -->
+        <div id="tab-shipped" class="tab-content hidden">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-lg font-medium flex items-center gap-2">
+                    <span class="text-blue-600">📮</span>
+                    <span>已到貨</span>
+                </h2>
+                <span id="shipped-count" class="text-xs bg-blue-100 text-blue-700 px-3 py-1 rounded-full">0 件</span>
+            </div>
+            <div id="shipped-grid" class="grid grid-cols-2 gap-4">
+                <!-- Populated by JS -->
+            </div>
+        </div>
+
+        <!-- Home Tab -->
+        <div id="tab-home" class="tab-content hidden">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-lg font-medium flex items-center gap-2">
+                    <span class="text-purple-600">🏠</span>
+                    <span>已返屋企</span>
+                </h2>
+                <span id="home-count" class="text-xs bg-purple-100 text-purple-700 px-3 py-1 rounded-full">0 件</span>
+            </div>
+            <div id="home-grid" class="grid grid-cols-2 gap-4">
+                <!-- Populated by JS -->
+            </div>
+        </div>
+    </main>
+
+    <!-- Bottom Navigation -->
+    <nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-stone-200 z-50">
+        <div class="max-w-xl mx-auto">
+            <div class="grid grid-cols-4 text-xs">
+                <button onclick="switchTab(0)" id="nav-0"
+                        class="flex flex-col items-center py-3 text-amber-600 border-t-2 border-amber-600">
+                    <i class="fa-solid fa-list-ul text-xl mb-1"></i>
+                    <span class="font-medium">全部</span>
+                </button>
+                <button onclick="switchTab(1)" id="nav-1"
+                        class="flex flex-col items-center py-3 text-stone-400 hover:text-stone-600">
+                    <span class="text-2xl mb-1">💸</span>
+                    <span class="font-medium">已付</span>
+                </button>
+                <button onclick="switchTab(2)" id="nav-2"
+                        class="flex flex-col items-center py-3 text-stone-400 hover:text-stone-600">
+                    <span class="text-2xl mb-1">📮</span>
+                    <span class="font-medium">到貨</span>
+                </button>
+                <button onclick="switchTab(3)" id="nav-3"
+                        class="flex flex-col items-center py-3 text-stone-400 hover:text-stone-600">
+                    <span class="text-2xl mb-1">🏠</span>
+                    <span class="font-medium">返屋企</span>
                 </button>
             </div>
+        </div>
+    </nav>
 
-            <!-- 下拉清單 -->
-            <div class="flex items-center gap-3 mb-6 px-1">
-                <span class="text-sm text-neutral-500">顯示：</span>
-                <select id="status-filter" onchange="filterItems()" 
-                        class="flex-1 bg-white border border-neutral-200 rounded-2xl px-5 py-3 text-base">
-                    <option value="all">全部物品</option>
-                    <option value="paid">💸 已俾錢</option>
-                    <option value="arrived">📮 已到貨</option>
-                    <option value="home">🏠 返屋企</option>
-                </select>
+    <!-- Add / Edit Modal -->
+    <div id="add-modal" class="hidden fixed inset-0 bg-black/70 flex items-end z-[100]">
+        <div class="modal bg-white w-full max-w-xl mx-auto rounded-t-3xl max-h-[92vh] overflow-hidden flex flex-col">
+            <!-- Modal Header -->
+            <div class="px-6 py-5 border-b flex items-center justify-between">
+                <h3 id="modal-title" class="font-semibold text-xl">新增記錄</h3>
+                <button onclick="hideAddModal()" class="text-3xl leading-none text-stone-400 hover:text-stone-600">×</button>
             </div>
-
-            <div id="purchase-grid" class="photo-grid"></div>
-        </main>
+            
+            <div class="flex-1 overflow-auto p-6 space-y-8">
+                <!-- Photo Upload -->
+                <div>
+                    <label class="block text-sm font-medium text-stone-500 mb-3">商品照片</label>
+                    <div id="photo-upload-area" 
+                         onclick="document.getElementById('photo-input').click()"
+                         class="border-2 border-dashed border-stone-300 rounded-3xl h-64 flex flex-col items-center justify-center cursor-pointer hover:border-amber-300 transition-colors">
+                        <i class="fa-solid fa-camera text-4xl text-stone-300 mb-3"></i>
+                        <p class="text-stone-400 text-sm">點擊上傳或拍照</p>
+                        <p class="text-[10px] text-stone-400 mt-1">建議 1:1 正方形</p>
+                    </div>
+                    
+                    <input type="file" id="photo-input" accept="image/*" class="hidden" onchange="handlePhotoSelect(event)">
+                    
+                    <!-- Preview -->
+                    <div id="photo-preview" class="hidden mt-4">
+                        <div class="relative">
+                            <img id="preview-img" class="w-full rounded-3xl shadow-sm" alt="預覽">
+                            <button onclick="removePhoto()" 
+                                    class="absolute top-4 right-4 bg-white text-red-500 w-8 h-8 rounded-2xl flex items-center justify-center shadow">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Notes -->
+                <div>
+                    <label class="block text-sm font-medium text-stone-500 mb-2">備註 / 商品名稱</label>
+                    <textarea id="notes-input" rows="3"
+                        class="w-full border border-stone-200 focus:border-amber-400 rounded-3xl px-5 py-4 text-base resize-none focus:outline-none"
+                        placeholder="例如：無印良品 棉質 T 恤"></textarea>
+                </div>
+                
+                <!-- Status -->
+                <div>
+                    <label class="block text-sm font-medium text-stone-500 mb-3">目前狀態</label>
+                    <div class="grid grid-cols-3 gap-3" id="status-options">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Footer Buttons -->
+            <div class="p-6 border-t flex gap-4">
+                <button onclick="hideAddModal()" 
+                        class="flex-1 py-4 text-stone-500 font-medium border border-stone-200 rounded-3xl active:bg-stone-100">
+                    取消
+                </button>
+                <button onclick="saveRecord()" id="save-btn"
+                        class="flex-1 py-4 bg-amber-600 hover:bg-amber-700 text-white font-medium rounded-3xl active:scale-95 transition-all">
+                    保存記錄
+                </button>
+            </div>
+        </div>
     </div>
 
-    <!-- 編輯 Modal -->
-    <div id="edit-modal" class="modal">
-        <div class="bg-white rounded-3xl w-[92%] max-w-[420px] p-6">
-            <h3 class="font-medium text-lg mb-4">編輯物品</h3>
-            
-            <div class="mb-4">
-                <img id="modal-photo-preview" class="w-full h-52 object-cover rounded-2xl">
+    <!-- Detail Modal -->
+    <div id="detail-modal" class="hidden fixed inset-0 bg-black/70 flex items-end z-[100]">
+        <div class="modal bg-white w-full max-w-xl mx-auto rounded-t-3xl overflow-hidden">
+            <div class="p-6">
+                <div class="flex justify-end">
+                    <button onclick="hideDetailModal()" class="text-3xl text-stone-400">×</button>
+                </div>
+                
+                <img id="detail-img" class="w-full rounded-3xl shadow-sm mb-6" alt="">
+                
+                <div class="space-y-6">
+                    <div>
+                        <div class="text-xs text-stone-400 mb-1">備註</div>
+                        <div id="detail-notes" class="text-lg leading-relaxed"></div>
+                    </div>
+                    
+                    <div>
+                        <div class="text-xs text-stone-400 mb-2">狀態</div>
+                        <div id="detail-status" class="flex gap-3"></div>
+                    </div>
+                    
+                    <div class="text-xs text-stone-400">
+                        記錄時間: <span id="detail-time"></span>
+                    </div>
+                </div>
             </div>
             
-            <div onclick="document.getElementById('edit-photo-input').click()" 
-                 class="border border-dashed border-neutral-300 rounded-2xl py-3 text-center text-sm cursor-pointer hover:border-[#5C6B6A]">
-                點擊更換照片
+            <div class="border-t p-6 flex gap-3">
+                <button onclick="editCurrentRecord()" 
+                        class="flex-1 py-4 border border-stone-300 rounded-3xl text-stone-700 font-medium">
+                    <i class="fa-solid fa-pen mr-2"></i>編輯
+                </button>
+                <button onclick="deleteCurrentRecord()" 
+                        class="flex-1 py-4 bg-red-50 text-red-600 rounded-3xl font-medium">
+                    <i class="fa-solid fa-trash mr-2"></i>刪除
+                </button>
             </div>
-            <input type="file" id="edit-photo-input" accept="image/*" class="hidden" onchange="handleEditPhotoUpload(event)">
+        </div>
+    </div>
+
+    <!-- Backup Modal -->
+    <div id="backup-modal" class="hidden fixed inset-0 bg-black/60 flex items-center justify-center z-[200]">
+        <div class="bg-white rounded-3xl max-w-sm w-full mx-4 overflow-hidden">
+            <div class="p-8">
+                <h3 class="text-2xl font-semibold mb-2">備份與還原</h3>
+                <p class="text-stone-500 text-sm leading-relaxed">
+                    建議定期備份您的資料。<br>
+                    換手機時只需匯入 JSON 檔案即可恢復所有記錄。
+                </p>
+                
+                <div class="my-8 space-y-4">
+                    <button onclick="exportData()" 
+                            class="w-full py-4 bg-white border-2 border-stone-300 hover:border-stone-400 rounded-3xl flex items-center justify-center gap-3 text-base font-medium">
+                        <i class="fa-solid fa-download"></i>
+                        <span>下載備份 JSON</span>
+                    </button>
+                    
+                    <button onclick="document.getElementById('import-input-backup').click()" 
+                            class="w-full py-4 bg-amber-600 text-white rounded-3xl flex items-center justify-center gap-3 text-base font-medium">
+                        <i class="fa-solid fa-upload"></i>
+                        <span>匯入備份</span>
+                    </button>
+                    <input type="file" id="import-input-backup" accept=".json" class="hidden" onchange="importData(event)">
+                </div>
+            </div>
             
-            <input id="edit-note" type="text" placeholder="備註" 
-                   class="w-full mt-5 px-5 py-4 border border-neutral-200 rounded-2xl focus:outline-none">
-            
-            <div class="flex gap-3 mt-6">
-                <button onclick="closeModal()" 
-                        class="flex-1 py-4 border border-neutral-200 rounded-2xl">取消</button>
-                <button onclick="saveEdit()" 
-                        class="flex-1 py-4 bg-[#5C6B6A] text-white rounded-2xl">儲存修改</button>
+            <div class="bg-stone-50 px-8 py-6 text-center border-t">
+                <button onclick="hideBackupModal()" 
+                        class="text-stone-400 hover:text-stone-600 font-medium">關閉</button>
             </div>
         </div>
     </div>
 
     <script>
-        let items = [];
-        const STORAGE_KEY = "muji_shopping_items";
-        let currentEditingId = null;
-        let tempNewPhoto = null;
-
-        function loadData() {
-            const saved = localStorage.getItem(STORAGE_KEY);
-            if (saved) items = JSON.parse(saved);
-            renderItems();
+        // Tailwind script
+        function initTailwind() {
+            // Already initialized via CDN
         }
-
-        function saveData() {
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
-        }
-
-        let tempPhoto = null;
-
-        function handlePhotoUpload(e) {
-            const file = e.target.files[0];
-            if (!file) return;
-            processImage(file, (base64) => {
-                tempPhoto = base64;
-                alert("✅ 照片已壓縮完成！");
-            });
-        }
-
-        function handleEditPhotoUpload(e) {
-            const file = e.target.files[0];
-            if (!file) return;
-            processImage(file, (base64) => {
-                tempNewPhoto = base64;
-                document.getElementById("modal-photo-preview").src = base64;
-            });
-        }
-
-        function processImage(file, callback) {
-            const reader = new FileReader();
-            reader.onload = function(ev) {
-                const img = new Image();
-                img.onload = function() {
-                    const canvas = document.createElement('canvas');
-                    let w = img.width, h = img.height;
-                    if (w > 700) { h = Math.round(h * 700 / w); w = 700; }
-                    canvas.width = w; canvas.height = h;
-                    canvas.getContext('2d').drawImage(img, 0, 0, w, h);
-                    callback(canvas.toDataURL('image/jpeg', 0.78));
-                };
-                img.src = ev.target.result;
-            };
-            reader.readAsDataURL(file);
-        }
-
-        function addItem() {
-            if (!tempPhoto) return alert("請先上傳照片！");
-
-            items.unshift({
-                id: Date.now(),
-                note: document.getElementById("item-note").value.trim() || "無備註",
-                photo: tempPhoto,
-                paid: false,
-                arrived: false,
-                home: false,
-                date: new Date().toISOString()
-            });
-
-            saveData();
-            tempPhoto = null;
-            document.getElementById("item-note").value = "";
-            renderItems();
-        }
-
-        function toggleStatus(id, field) {
-            const item = items.find(i => i.id === id);
-            if (item) {
-                item[field] = !item[field];
-                saveData();
-                renderItems();
+        
+        let records = [];
+        let currentEditId = null;
+        let currentDetailId = null;
+        let currentPhotoBase64 = null;
+        let currentTab = 0;
+        
+        const STATUS_OPTIONS = [
+            { key: 'paid', emoji: '💸', label: '已付款', color: 'emerald' },
+            { key: 'shipped', emoji: '📮', label: '已到貨', color: 'blue' },
+            { key: 'home', emoji: '🏠', label: '返咗屋企', color: 'purple' }
+        ];
+        
+        // Load from localStorage
+        function loadRecords() {
+            const saved = localStorage.getItem('purchaseRecords');
+            if (saved) {
+                records = JSON.parse(saved);
+            } else {
+                records = [];
             }
+            renderAll();
         }
-
-        function deleteItem(id) {
-            if (confirm("確定刪除這筆紀錄？")) {
-                items = items.filter(i => i.id !== id);
-                saveData();
-                renderItems();
-            }
+        
+        // Save to localStorage
+        function saveToStorage() {
+            localStorage.setItem('purchaseRecords', JSON.stringify(records));
         }
-
-        function editItem(id) {
-            const item = items.find(i => i.id === id);
-            if (!item) return;
+        
+        // Render grid for a specific status
+        function renderGrid(containerId, filteredRecords) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = '';
             
-            currentEditingId = id;
-            tempNewPhoto = null;
-            
-            document.getElementById("modal-photo-preview").src = item.photo;
-            document.getElementById("edit-note").value = item.note === "無備註" ? "" : item.note;
-            document.getElementById("edit-modal").style.display = "flex";
-        }
-
-        function saveEdit() {
-            if (!currentEditingId) return;
-            
-            const item = items.find(i => i.id === currentEditingId);
-            if (item) {
-                const newNote = document.getElementById("edit-note").value.trim();
-                item.note = newNote || "無備註";
-                
-                if (tempNewPhoto) {
-                    item.photo = tempNewPhoto;
-                }
-                
-                saveData();
-                closeModal();
-                renderItems();
-            }
-        }
-
-        function closeModal() {
-            document.getElementById("edit-modal").style.display = "none";
-            currentEditingId = null;
-            tempNewPhoto = null;
-        }
-
-        function renderItems() {
-            const container = document.getElementById("purchase-grid");
-            const filter = document.getElementById("status-filter").value;
-            
-            const filtered = filter === 'all' 
-                ? items 
-                : items.filter(item => item[filter]);
-
-            container.innerHTML = "";
-
-            if (filtered.length === 0) {
-                container.innerHTML = `<div class="col-span-full text-center py-20 text-neutral-400">暫無紀錄</div>`;
+            if (filteredRecords.length === 0) {
+                container.innerHTML = `
+                    <div class="col-span-2 py-12 text-center">
+                        <div class="mx-auto w-16 h-16 bg-stone-100 rounded-3xl flex items-center justify-center text-4xl mb-4">📦</div>
+                        <p class="text-stone-400">暫無記錄</p>
+                    </div>
+                `;
                 return;
             }
-
-            filtered.forEach(item => {
-                const div = document.createElement("div");
-                div.className = "photo-item card relative";
+            
+            filteredRecords.forEach(record => {
+                const div = document.createElement('div');
+                div.className = `card bg-white rounded-3xl overflow-hidden shadow-sm cursor-pointer`;
                 div.innerHTML = `
-                    <img src="${item.photo}" alt="${item.note}" onclick="editItem(${item.id})">
-                    <div class="p-3">
-                        <div class="text-sm font-medium leading-tight">${item.note}</div>
-                        <div class="text-xs text-neutral-400 mt-1">${new Date(item.date).toLocaleDateString('zh-TW')}</div>
+                    <div class="photo-container">
+                        <img src="${record.image}" class="w-full h-full object-cover thumbnail" alt="">
                     </div>
-                    
-                    <div class="grid grid-cols-3 gap-1 p-2 border-t text-center text-lg">
-                        <button onclick="toggleStatus(${item.id}, 'paid')" 
-                                class="py-2 rounded-xl ${item.paid ? 'bg-green-100 text-green-700' : 'bg-neutral-100'}">💸</button>
-                        <button onclick="toggleStatus(${item.id}, 'arrived')" 
-                                class="py-2 rounded-xl ${item.arrived ? 'bg-blue-100 text-blue-700' : 'bg-neutral-100'}">📮</button>
-                        <button onclick="toggleStatus(${item.id}, 'home')" 
-                                class="py-2 rounded-xl ${item.home ? 'bg-amber-100 text-amber-700' : 'bg-neutral-100'}">🏠</button>
+                    <div class="p-4">
+                        <div class="flex justify-between items-start gap-2">
+                            <div class="text-sm line-clamp-2 font-medium flex-1">${record.notes || '無備註'}</div>
+                            <div onclick="event.stopImmediatePropagation(); changeStatus('${record.id}');" 
+                                 class="status-badge bg-${getStatusColor(record.status)}-100 text-${getStatusColor(record.status)}-700 whitespace-nowrap">
+                                ${getStatusEmoji(record.status)}
+                            </div>
+                        </div>
+                        <div class="text-[10px] text-stone-400 mt-3">${new Date(record.timestamp).toLocaleDateString('zh-HK')}</div>
                     </div>
-                    
-                    <button onclick="editItem(${item.id}); event.stopImmediatePropagation()" 
-                            class="absolute top-3 left-3 bg-white rounded-full w-7 h-7 flex items-center justify-center shadow text-[#5C6B6A]">
-                        <i class="fa-solid fa-pen text-xs"></i>
-                    </button>
-                    
-                    <button onclick="deleteItem(${item.id}); event.stopImmediatePropagation()" 
-                            class="absolute top-3 right-3 bg-white rounded-full w-7 h-7 flex items-center justify-center shadow text-red-400">
-                        <i class="fa-solid fa-trash text-xs"></i>
-                    </button>
                 `;
+                div.onclick = () => showDetail(record.id);
                 container.appendChild(div);
             });
         }
-
-        function filterItems() {
-            renderItems();
+        
+        function getStatusEmoji(status) {
+            const found = STATUS_OPTIONS.find(s => s.key === status);
+            return found ? found.emoji : '📦';
         }
-
-        function clearAllData() {
-            if (confirm("⚠️ 確定清除所有紀錄嗎？此動作無法復原！")) {
-                localStorage.clear();
-                items = [];
-                renderItems();
+        
+        function getStatusColor(status) {
+            const found = STATUS_OPTIONS.find(s => s.key === status);
+            return found ? found.color : 'stone';
+        }
+        
+        function renderAll() {
+            // All
+            renderGrid('all-grid', records);
+            document.getElementById('all-count').textContent = records.length;
+            
+            // Paid
+            const paid = records.filter(r => r.status === 'paid');
+            renderGrid('paid-grid', paid);
+            document.getElementById('paid-count').textContent = `${paid.length} 件`;
+            
+            // Shipped
+            const shipped = records.filter(r => r.status === 'shipped');
+            renderGrid('shipped-grid', shipped);
+            document.getElementById('shipped-count').textContent = `${shipped.length} 件`;
+            
+            // Home
+            const home = records.filter(r => r.status === 'home');
+            renderGrid('home-grid', home);
+            document.getElementById('home-count').textContent = `${home.length} 件`;
+        }
+        
+        function switchTab(tabIndex) {
+            currentTab = tabIndex;
+            
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.add('hidden'));
+            
+            // Show selected
+            const tabIds = ['tab-all', 'tab-paid', 'tab-shipped', 'tab-home'];
+            document.getElementById(tabIds[tabIndex]).classList.remove('hidden');
+            
+            // Update nav styles
+            for (let i = 0; i < 4; i++) {
+                const navBtn = document.getElementById(`nav-${i}`);
+                if (i === tabIndex) {
+                    navBtn.classList.add('text-amber-600', 'border-t-2', 'border-amber-600');
+                    navBtn.classList.remove('text-stone-400');
+                } else {
+                    navBtn.classList.remove('text-amber-600', 'border-t-2', 'border-amber-600');
+                    navBtn.classList.add('text-stone-400');
+                }
             }
         }
-
-        window.onload = loadData;
+        
+        // Photo handling
+        function handlePhotoSelect(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(ev) {
+                compressImage(ev.target.result, (compressed) => {
+                    currentPhotoBase64 = compressed;
+                    document.getElementById('photo-preview').classList.remove('hidden');
+                    document.getElementById('photo-upload-area').classList.add('hidden');
+                    document.getElementById('preview-img').src = compressed;
+                });
+            };
+            reader.readAsDataURL(file);
+        }
+        
+        function compressImage(base64, callback) {
+            const img = new Image();
+            img.onload = function() {
+                let width = img.width;
+                let height = img.height;
+                
+                // Max dimension 900px
+                const MAX_DIM = 900;
+                if (width > height) {
+                    if (width > MAX_DIM) {
+                        height = Math.round(height * MAX_DIM / width);
+                        width = MAX_DIM;
+                    }
+                } else {
+                    if (height > MAX_DIM) {
+                        width = Math.round(width * MAX_DIM / height);
+                        height = MAX_DIM;
+                    }
+                }
+                
+                const canvas = document.createElement('canvas');
+                canvas.width = width;
+                canvas.height = height;
+                
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, width, height);
+                
+                // Compress to JPEG 0.82 quality
+                const compressed = canvas.toDataURL('image/jpeg', 0.82);
+                callback(compressed);
+            };
+            img.src = base64;
+        }
+        
+        function removePhoto() {
+            currentPhotoBase64 = null;
+            document.getElementById('photo-preview').classList.add('hidden');
+            document.getElementById('photo-upload-area').classList.remove('hidden');
+            document.getElementById('photo-input').value = '';
+        }
+        
+        // Render status options
+        function renderStatusOptions(selectedStatus = 'paid') {
+            const container = document.getElementById('status-options');
+            container.innerHTML = '';
+            
+            STATUS_OPTIONS.forEach(status => {
+                const isSelected = status.key === selectedStatus;
+                
+                const btn = document.createElement('button');
+                btn.className = `flex flex-col items-center py-4 rounded-3xl border transition-all ${isSelected ? 
+                    `border-${status.color}-400 bg-${status.color}-50` : 
+                    'border-transparent hover:bg-stone-100'}`;
+                btn.innerHTML = `
+                    <span class="text-4xl mb-2">${status.emoji}</span>
+                    <span class="text-xs font-medium">${status.label}</span>
+                `;
+                btn.onclick = () => {
+                    currentStatus = status.key;
+                    renderStatusOptions(currentStatus);
+                };
+                container.appendChild(btn);
+            });
+        }
+        
+        let currentStatus = 'paid';
+        
+        function showAddModal(editRecord = null) {
+            currentEditId = editRecord ? editRecord.id : null;
+            currentPhotoBase64 = editRecord ? editRecord.image : null;
+            
+            document.getElementById('modal-title').textContent = editRecord ? '編輯記錄' : '新增記錄';
+            document.getElementById('notes-input').value = editRecord ? editRecord.notes : '';
+            
+            // Photo preview
+            const previewContainer = document.getElementById('photo-preview');
+            const uploadArea = document.getElementById('photo-upload-area');
+            
+            if (editRecord && editRecord.image) {
+                previewContainer.classList.remove('hidden');
+                uploadArea.classList.add('hidden');
+                document.getElementById('preview-img').src = editRecord.image;
+            } else {
+                previewContainer.classList.add('hidden');
+                uploadArea.classList.remove('hidden');
+            }
+            
+            currentStatus = editRecord ? editRecord.status : 'paid';
+            renderStatusOptions(currentStatus);
+            
+            document.getElementById('add-modal').classList.remove('hidden');
+            document.getElementById('add-modal').classList.add('flex');
+        }
+        
+        function hideAddModal() {
+            document.getElementById('add-modal').classList.add('hidden');
+            document.getElementById('add-modal').classList.remove('flex');
+            currentPhotoBase64 = null;
+            currentEditId = null;
+        }
+        
+        function saveRecord() {
+            const notes = document.getElementById('notes-input').value.trim();
+            
+            if (!currentPhotoBase64 && !currentEditId) {
+                alert('請上傳一張照片！');
+                return;
+            }
+            
+            if (currentEditId) {
+                // Update existing
+                const record = records.find(r => r.id === currentEditId);
+                if (record) {
+                    record.notes = notes || '無備註';
+                    if (currentPhotoBase64) record.image = currentPhotoBase64;
+                    record.status = currentStatus;
+                }
+            } else {
+                // Create new
+                const newRecord = {
+                    id: 'rec_' + Date.now().toString(36) + Math.random().toString(36).substr(2),
+                    image: currentPhotoBase64,
+                    notes: notes || '無備註',
+                    status: currentStatus,
+                    timestamp: Date.now()
+                };
+                records.unshift(newRecord); // newest first
+            }
+            
+            saveToStorage();
+            hideAddModal();
+            renderAll();
+        }
+        
+        function showDetail(id) {
+            const record = records.find(r => r.id === id);
+            if (!record) return;
+            
+            currentDetailId = id;
+            
+            document.getElementById('detail-img').src = record.image;
+            document.getElementById('detail-notes').textContent = record.notes;
+            document.getElementById('detail-time').textContent = new Date(record.timestamp).toLocaleString('zh-HK');
+            
+            // Status badges
+            const statusContainer = document.getElementById('detail-status');
+            statusContainer.innerHTML = `
+                <div onclick="changeStatusFromDetail()" 
+                     class="cursor-pointer status-badge bg-${getStatusColor(record.status)}-100 text-${getStatusColor(record.status)}-700 px-6 py-2 text-base flex items-center gap-2">
+                    ${getStatusEmoji(record.status)} ${STATUS_OPTIONS.find(s => s.key === record.status).label}
+                </div>
+            `;
+            
+            document.getElementById('detail-modal').classList.remove('hidden');
+            document.getElementById('detail-modal').classList.add('flex');
+        }
+        
+        function hideDetailModal() {
+            document.getElementById('detail-modal').classList.add('hidden');
+            document.getElementById('detail-modal').classList.remove('flex');
+            currentDetailId = null;
+        }
+        
+        function editCurrentRecord() {
+            hideDetailModal();
+            const record = records.find(r => r.id === currentDetailId);
+            if (record) {
+                showAddModal(record);
+            }
+        }
+        
+        function deleteCurrentRecord() {
+            if (!confirm('確定刪除這筆記錄嗎？')) return;
+            
+            records = records.filter(r => r.id !== currentDetailId);
+            saveToStorage();
+            hideDetailModal();
+            renderAll();
+        }
+        
+        function changeStatus(id) {
+            const record = records.find(r => r.id === id);
+            if (!record) return;
+            
+            // Cycle status
+            const currentIndex = STATUS_OPTIONS.findIndex(s => s.key === record.status);
+            const nextIndex = (currentIndex + 1) % STATUS_OPTIONS.length;
+            record.status = STATUS_OPTIONS[nextIndex].key;
+            
+            saveToStorage();
+            renderAll();
+        }
+        
+        function changeStatusFromDetail() {
+            if (!currentDetailId) return;
+            changeStatus(currentDetailId);
+            hideDetailModal();
+            // Re-open detail to refresh
+            setTimeout(() => {
+                showDetail(currentDetailId);
+            }, 50);
+        }
+        
+        // Backup & Restore
+        function showBackupModal() {
+            document.getElementById('backup-modal').classList.remove('hidden');
+        }
+        
+        function hideBackupModal() {
+            document.getElementById('backup-modal').classList.add('hidden');
+        }
+        
+        function exportData() {
+            if (records.length === 0) {
+                alert('目前沒有資料可以備份');
+                return;
+            }
+            
+            const dataStr = JSON.stringify(records, null, 2);
+            const dataUri = 'data:application/json;charset=utf-8,' + encodeURIComponent(dataStr);
+            
+            const exportFileDefaultName = `purchase_backup_${new Date().toISOString().slice(0,10)}.json`;
+            
+            const linkElement = document.createElement('a');
+            linkElement.setAttribute('href', dataUri);
+            linkElement.setAttribute('download', exportFileDefaultName);
+            linkElement.click();
+            
+            hideBackupModal();
+        }
+        
+        function importData(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(ev) {
+                try {
+                    const imported = JSON.parse(ev.target.result);
+                    
+                    if (!Array.isArray(imported)) {
+                        alert('無效的備份檔案格式！');
+                        return;
+                    }
+                    
+                    if (confirm(`即將匯入 ${imported.length} 筆記錄。\n\n現有資料將被替換，確定繼續？`)) {
+                        records = imported;
+                        saveToStorage();
+                        renderAll();
+                        hideBackupModal();
+                        alert('✅ 資料已成功匯入！');
+                    }
+                } catch(err) {
+                    alert('讀取失敗，請確認檔案是否正確。');
+                }
+            };
+            reader.readAsText(file);
+            
+            // Clear input
+            e.target.value = '';
+        }
+        
+        // Keyboard shortcuts
+        function handleKeyPress(e) {
+            if (e.key === "Escape") {
+                const addModal = document.getElementById('add-modal');
+                const detailModal = document.getElementById('detail-modal');
+                const backupModal = document.getElementById('backup-modal');
+                
+                if (!addModal.classList.contains('hidden')) hideAddModal();
+                else if (!detailModal.classList.contains('hidden')) hideDetailModal();
+                else if (!backupModal.classList.contains('hidden')) hideBackupModal();
+            }
+        }
+        
+        // Initialize everything
+        function initializeApp() {
+            // Tailwind ready
+            loadRecords();
+            
+            // Default tab
+            switchTab(0);
+            
+            // Keyboard
+            document.addEventListener('keydown', handleKeyPress);
+            
+            // Make sure modals close on background click (optional)
+            const addModalEl = document.getElementById('add-modal');
+            addModalEl.addEventListener('click', function(e) {
+                if (e.target === addModalEl) hideAddModal();
+            });
+            
+            const detailModalEl = document.getElementById('detail-modal');
+            detailModalEl.addEventListener('click', function(e) {
+                if (e.target === detailModalEl) hideDetailModal();
+            });
+            
+            console.log('%c✅ 購買記錄 App 已初始化', 'color:#ca8a04; font-family:monospace');
+        }
+        
+        // Boot app
+        window.onload = initializeApp;
     </script>
 </body>
 </html>
