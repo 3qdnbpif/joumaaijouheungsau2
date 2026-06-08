@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>我的購買記錄</title>
+    <title>早買早享受</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&amp;family=Noto+Sans+HK:wght@400;500;700&amp;display=swap" rel="stylesheet">
@@ -64,23 +64,28 @@
         .thumbnail:active {
             transform: scale(0.95);
         }
+        
+        .nav-arrow {
+            transition: all 0.2s ease;
+        }
     </style>
 </head>
 <body class="tail-container bg-stone-50 text-stone-800 min-h-screen pb-20">
     <!-- Header -->
     <header class="bg-white border-b border-stone-200 sticky top-0 z-50">
         <div class="max-w-xl mx-auto px-4 py-4 flex items-center justify-between">
-            <div class="flex items-center gap-3">
-                <div class="w-8 h-8 bg-amber-100 text-amber-600 rounded-2xl flex items-center justify-center text-xl">
-                    📦
-                </div>
-                <div>
-                    <h1 class="text-xl font-semibold tracking-tight">購買記錄</h1>
-                    <p class="text-xs text-stone-500 -mt-1">日系無印風</p>
-                </div>
+            <div>
+                <h1 class="text-2xl font-semibold tracking-tight">早買早享受</h1>
             </div>
             
-            <div class="flex items-center gap-2">
+            <div class="flex items-center gap-3">
+                <select id="sort-select" onchange="changeSortOrder()"
+                        class="bg-white border border-stone-200 text-sm rounded-2xl px-4 py-2 focus:outline-none focus:border-amber-300">
+                    <option value="date-desc">添加日期 ↓</option>
+                    <option value="date-asc">添加日期 ↑</option>
+                    <option value="notes-asc">備註筆劃 ↑</option>
+                </select>
+                
                 <button onclick="showBackupModal()" 
                         class="w-9 h-9 flex items-center justify-center text-stone-500 hover:text-stone-700 transition-colors">
                     <i class="fa-solid fa-download text-lg"></i>
@@ -188,7 +193,6 @@
     <!-- Add / Edit Modal -->
     <div id="add-modal" class="hidden fixed inset-0 bg-black/70 flex items-end z-[100]">
         <div class="modal bg-white w-full max-w-xl mx-auto rounded-t-3xl max-h-[92vh] overflow-hidden flex flex-col">
-            <!-- Modal Header -->
             <div class="px-6 py-5 border-b flex items-center justify-between">
                 <h3 id="modal-title" class="font-semibold text-xl">新增記錄</h3>
                 <button onclick="hideAddModal()" class="text-3xl leading-none text-stone-400 hover:text-stone-600">×</button>
@@ -237,7 +241,6 @@
                 </div>
             </div>
             
-            <!-- Footer Buttons -->
             <div class="p-6 border-t flex gap-4">
                 <button onclick="hideAddModal()" 
                         class="flex-1 py-4 text-stone-500 font-medium border border-stone-200 rounded-3xl active:bg-stone-100">
@@ -254,7 +257,19 @@
     <!-- Detail Modal -->
     <div id="detail-modal" class="hidden fixed inset-0 bg-black/70 flex items-end z-[100]">
         <div class="modal bg-white w-full max-w-xl mx-auto rounded-t-3xl overflow-hidden">
-            <div class="p-6">
+            <!-- Navigation Arrows -->
+            <div class="absolute left-0 right-0 top-6 z-10 flex justify-between px-6">
+                <button onclick="prevRecord()" 
+                        class="nav-arrow w-11 h-11 bg-white/90 hover:bg-white shadow-md rounded-2xl flex items-center justify-center text-2xl text-stone-700 active:scale-90">
+                    ←
+                </button>
+                <button onclick="nextRecord()" 
+                        class="nav-arrow w-11 h-11 bg-white/90 hover:bg-white shadow-md rounded-2xl flex items-center justify-center text-2xl text-stone-700 active:scale-90">
+                    →
+                </button>
+            </div>
+
+            <div class="p-6 pt-16">
                 <div class="flex justify-end">
                     <button onclick="hideDetailModal()" class="text-3xl text-stone-400">×</button>
                 </div>
@@ -325,16 +340,12 @@
     </div>
 
     <script>
-        // Tailwind script
-        function initTailwind() {
-            // Already initialized via CDN
-        }
-        
         let records = [];
         let currentEditId = null;
         let currentDetailId = null;
         let currentPhotoBase64 = null;
         let currentTab = 0;
+        let currentSortOrder = 'date-desc';
         
         const STATUS_OPTIONS = [
             { key: 'paid', emoji: '💸', label: '已付款', color: 'emerald' },
@@ -342,7 +353,6 @@
             { key: 'home', emoji: '🏠', label: '返咗屋企', color: 'purple' }
         ];
         
-        // Load from localStorage
         function loadRecords() {
             const saved = localStorage.getItem('purchaseRecords');
             if (saved) {
@@ -353,17 +363,29 @@
             renderAll();
         }
         
-        // Save to localStorage
         function saveToStorage() {
             localStorage.setItem('purchaseRecords', JSON.stringify(records));
         }
         
-        // Render grid for a specific status
+        function sortRecords(recs) {
+            const sorted = [...recs];
+            if (currentSortOrder === 'date-desc') {
+                sorted.sort((a, b) => b.timestamp - a.timestamp);
+            } else if (currentSortOrder === 'date-asc') {
+                sorted.sort((a, b) => a.timestamp - b.timestamp);
+            } else if (currentSortOrder === 'notes-asc') {
+                sorted.sort((a, b) => (a.notes || '').localeCompare(b.notes || '', 'zh-HK'));
+            }
+            return sorted;
+        }
+        
         function renderGrid(containerId, filteredRecords) {
             const container = document.getElementById(containerId);
             container.innerHTML = '';
             
-            if (filteredRecords.length === 0) {
+            const sorted = sortRecords(filteredRecords);
+            
+            if (sorted.length === 0) {
                 container.innerHTML = `
                     <div class="col-span-2 py-12 text-center">
                         <div class="mx-auto w-16 h-16 bg-stone-100 rounded-3xl flex items-center justify-center text-4xl mb-4">📦</div>
@@ -373,7 +395,7 @@
                 return;
             }
             
-            filteredRecords.forEach(record => {
+            sorted.forEach(record => {
                 const div = document.createElement('div');
                 div.className = `card bg-white rounded-3xl overflow-hidden shadow-sm cursor-pointer`;
                 div.innerHTML = `
@@ -407,37 +429,33 @@
         }
         
         function renderAll() {
-            // All
             renderGrid('all-grid', records);
             document.getElementById('all-count').textContent = records.length;
             
-            // Paid
             const paid = records.filter(r => r.status === 'paid');
             renderGrid('paid-grid', paid);
             document.getElementById('paid-count').textContent = `${paid.length} 件`;
             
-            // Shipped
             const shipped = records.filter(r => r.status === 'shipped');
             renderGrid('shipped-grid', shipped);
             document.getElementById('shipped-count').textContent = `${shipped.length} 件`;
             
-            // Home
             const home = records.filter(r => r.status === 'home');
             renderGrid('home-grid', home);
             document.getElementById('home-count').textContent = `${home.length} 件`;
         }
         
+        function changeSortOrder() {
+            currentSortOrder = document.getElementById('sort-select').value;
+            renderAll();
+        }
+        
         function switchTab(tabIndex) {
             currentTab = tabIndex;
-            
-            // Hide all tabs
             document.querySelectorAll('.tab-content').forEach(tab => tab.classList.add('hidden'));
-            
-            // Show selected
             const tabIds = ['tab-all', 'tab-paid', 'tab-shipped', 'tab-home'];
             document.getElementById(tabIds[tabIndex]).classList.remove('hidden');
             
-            // Update nav styles
             for (let i = 0; i < 4; i++) {
                 const navBtn = document.getElementById(`nav-${i}`);
                 if (i === tabIndex) {
@@ -450,7 +468,6 @@
             }
         }
         
-        // Photo handling
         function handlePhotoSelect(e) {
             const file = e.target.files[0];
             if (!file) return;
@@ -472,8 +489,6 @@
             img.onload = function() {
                 let width = img.width;
                 let height = img.height;
-                
-                // Max dimension 900px
                 const MAX_DIM = 900;
                 if (width > height) {
                     if (width > MAX_DIM) {
@@ -490,11 +505,8 @@
                 const canvas = document.createElement('canvas');
                 canvas.width = width;
                 canvas.height = height;
-                
                 const ctx = canvas.getContext('2d');
                 ctx.drawImage(img, 0, 0, width, height);
-                
-                // Compress to JPEG 0.82 quality
                 const compressed = canvas.toDataURL('image/jpeg', 0.82);
                 callback(compressed);
             };
@@ -508,14 +520,11 @@
             document.getElementById('photo-input').value = '';
         }
         
-        // Render status options
         function renderStatusOptions(selectedStatus = 'paid') {
             const container = document.getElementById('status-options');
             container.innerHTML = '';
-            
             STATUS_OPTIONS.forEach(status => {
                 const isSelected = status.key === selectedStatus;
-                
                 const btn = document.createElement('button');
                 btn.className = `flex flex-col items-center py-4 rounded-3xl border transition-all ${isSelected ? 
                     `border-${status.color}-400 bg-${status.color}-50` : 
@@ -541,7 +550,6 @@
             document.getElementById('modal-title').textContent = editRecord ? '編輯記錄' : '新增記錄';
             document.getElementById('notes-input').value = editRecord ? editRecord.notes : '';
             
-            // Photo preview
             const previewContainer = document.getElementById('photo-preview');
             const uploadArea = document.getElementById('photo-upload-area');
             
@@ -577,7 +585,6 @@
             }
             
             if (currentEditId) {
-                // Update existing
                 const record = records.find(r => r.id === currentEditId);
                 if (record) {
                     record.notes = notes || '無備註';
@@ -585,7 +592,6 @@
                     record.status = currentStatus;
                 }
             } else {
-                // Create new
                 const newRecord = {
                     id: 'rec_' + Date.now().toString(36) + Math.random().toString(36).substr(2),
                     image: currentPhotoBase64,
@@ -593,7 +599,7 @@
                     status: currentStatus,
                     timestamp: Date.now()
                 };
-                records.unshift(newRecord); // newest first
+                records.unshift(newRecord);
             }
             
             saveToStorage();
@@ -601,17 +607,23 @@
             renderAll();
         }
         
+        let detailRecordIds = [];
+        
         function showDetail(id) {
-            const record = records.find(r => r.id === id);
-            if (!record) return;
-            
+            const allSorted = sortRecords(records);
+            detailRecordIds = allSorted.map(r => r.id);
             currentDetailId = id;
+            renderCurrentDetail();
+        }
+        
+        function renderCurrentDetail() {
+            const record = records.find(r => r.id === currentDetailId);
+            if (!record) return;
             
             document.getElementById('detail-img').src = record.image;
             document.getElementById('detail-notes').textContent = record.notes;
             document.getElementById('detail-time').textContent = new Date(record.timestamp).toLocaleString('zh-HK');
             
-            // Status badges
             const statusContainer = document.getElementById('detail-status');
             statusContainer.innerHTML = `
                 <div onclick="changeStatusFromDetail()" 
@@ -624,23 +636,37 @@
             document.getElementById('detail-modal').classList.add('flex');
         }
         
+        function prevRecord() {
+            const index = detailRecordIds.indexOf(currentDetailId);
+            if (index > 0) {
+                currentDetailId = detailRecordIds[index - 1];
+                renderCurrentDetail();
+            }
+        }
+        
+        function nextRecord() {
+            const index = detailRecordIds.indexOf(currentDetailId);
+            if (index < detailRecordIds.length - 1) {
+                currentDetailId = detailRecordIds[index + 1];
+                renderCurrentDetail();
+            }
+        }
+        
         function hideDetailModal() {
             document.getElementById('detail-modal').classList.add('hidden');
             document.getElementById('detail-modal').classList.remove('flex');
             currentDetailId = null;
+            detailRecordIds = [];
         }
         
         function editCurrentRecord() {
             hideDetailModal();
             const record = records.find(r => r.id === currentDetailId);
-            if (record) {
-                showAddModal(record);
-            }
+            if (record) showAddModal(record);
         }
         
         function deleteCurrentRecord() {
             if (!confirm('確定刪除這筆記錄嗎？')) return;
-            
             records = records.filter(r => r.id !== currentDetailId);
             saveToStorage();
             hideDetailModal();
@@ -650,12 +676,9 @@
         function changeStatus(id) {
             const record = records.find(r => r.id === id);
             if (!record) return;
-            
-            // Cycle status
             const currentIndex = STATUS_OPTIONS.findIndex(s => s.key === record.status);
             const nextIndex = (currentIndex + 1) % STATUS_OPTIONS.length;
             record.status = STATUS_OPTIONS[nextIndex].key;
-            
             saveToStorage();
             renderAll();
         }
@@ -663,14 +686,9 @@
         function changeStatusFromDetail() {
             if (!currentDetailId) return;
             changeStatus(currentDetailId);
-            hideDetailModal();
-            // Re-open detail to refresh
-            setTimeout(() => {
-                showDetail(currentDetailId);
-            }, 50);
+            renderCurrentDetail();
         }
         
-        // Backup & Restore
         function showBackupModal() {
             document.getElementById('backup-modal').classList.remove('hidden');
         }
@@ -684,34 +702,27 @@
                 alert('目前沒有資料可以備份');
                 return;
             }
-            
             const dataStr = JSON.stringify(records, null, 2);
             const dataUri = 'data:application/json;charset=utf-8,' + encodeURIComponent(dataStr);
-            
             const exportFileDefaultName = `purchase_backup_${new Date().toISOString().slice(0,10)}.json`;
-            
             const linkElement = document.createElement('a');
             linkElement.setAttribute('href', dataUri);
             linkElement.setAttribute('download', exportFileDefaultName);
             linkElement.click();
-            
             hideBackupModal();
         }
         
         function importData(e) {
             const file = e.target.files[0];
             if (!file) return;
-            
             const reader = new FileReader();
             reader.onload = function(ev) {
                 try {
                     const imported = JSON.parse(ev.target.result);
-                    
                     if (!Array.isArray(imported)) {
                         alert('無效的備份檔案格式！');
                         return;
                     }
-                    
                     if (confirm(`即將匯入 ${imported.length} 筆記錄。\n\n現有資料將被替換，確定繼續？`)) {
                         records = imported;
                         saveToStorage();
@@ -724,12 +735,9 @@
                 }
             };
             reader.readAsText(file);
-            
-            // Clear input
             e.target.value = '';
         }
         
-        // Keyboard shortcuts
         function handleKeyPress(e) {
             if (e.key === "Escape") {
                 const addModal = document.getElementById('add-modal');
@@ -742,18 +750,11 @@
             }
         }
         
-        // Initialize everything
         function initializeApp() {
-            // Tailwind ready
             loadRecords();
-            
-            // Default tab
             switchTab(0);
-            
-            // Keyboard
             document.addEventListener('keydown', handleKeyPress);
             
-            // Make sure modals close on background click (optional)
             const addModalEl = document.getElementById('add-modal');
             addModalEl.addEventListener('click', function(e) {
                 if (e.target === addModalEl) hideAddModal();
@@ -764,10 +765,9 @@
                 if (e.target === detailModalEl) hideDetailModal();
             });
             
-            console.log('%c✅ 購買記錄 App 已初始化', 'color:#ca8a04; font-family:monospace');
+            console.log('%c✅ 早買早享受 App 已初始化', 'color:#ca8a04; font-family:monospace');
         }
         
-        // Boot app
         window.onload = initializeApp;
     </script>
 </body>
