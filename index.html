@@ -10,6 +10,7 @@
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+HK:wght@400;500;700&display=swap');
         body { font-family: 'Noto Sans HK', system-ui, sans-serif; }
         .card { transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
+        .card:hover { transform: translateY(-4px); }
         .toast { animation: toastIn 0.3s ease, toastOut 0.3s 2.8s forwards; }
         @keyframes toastIn { from { transform: translateY(30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
         @keyframes toastOut { to { transform: translateY(20px); opacity: 0; } }
@@ -26,6 +27,9 @@
                 <option value="date-asc">添加日期 ↑</option>
                 <option value="notes-asc">備註筆劃 ↑</option>
             </select>
+            <button onclick="showBackupModal()" class="px-3 py-2 text-stone-600 hover:text-stone-800">
+                <i class="fa-solid fa-download"></i>
+            </button>
         </div>
     </div>
 </header>
@@ -34,56 +38,72 @@
     <div id="tab-all" class="tab-content">
         <div class="flex justify-between items-center mb-6">
             <h2 class="text-lg font-medium">全部記錄 <span id="all-count" class="bg-stone-200 px-3 py-1 rounded-full text-xs">0</span></h2>
-            <button onclick="showAddModal()" class="bg-[#874FC2] text-white px-5 py-3 rounded-3xl flex items-center gap-2 active:scale-95">
+            <button onclick="showAddModal()" class="bg-[#874FC2] text-white px-6 py-3 rounded-3xl flex items-center gap-2 active:scale-95">
                 <i class="fa-solid fa-plus"></i> 新增記錄
             </button>
         </div>
         <div id="all-grid" class="grid grid-cols-2 gap-4"></div>
     </div>
 
-    <!-- 其他分頁 -->
-    <div id="tab-paid" class="tab-content hidden">已付款</div>
-    <div id="tab-shipped" class="tab-content hidden">已到貨</div>
-    <div id="tab-home" class="tab-content hidden">已返屋企</div>
+    <div id="tab-paid" class="tab-content hidden">
+        <h2 class="text-lg font-medium mb-6">💸 已付款</h2>
+        <div id="paid-grid" class="grid grid-cols-2 gap-4"></div>
+    </div>
+
+    <div id="tab-shipped" class="tab-content hidden">
+        <h2 class="text-lg font-medium mb-6">📮 已到貨</h2>
+        <div id="shipped-grid" class="grid grid-cols-2 gap-4"></div>
+    </div>
+
+    <div id="tab-home" class="tab-content hidden">
+        <h2 class="text-lg font-medium mb-6">🏠 已返屋企</h2>
+        <div id="home-grid" class="grid grid-cols-2 gap-4"></div>
+    </div>
 </main>
 
 <!-- Bottom Navigation -->
 <nav class="fixed bottom-0 left-0 right-0 bg-white border-t z-50">
     <div class="max-w-xl mx-auto grid grid-cols-4 text-xs">
-        <button onclick="switchTab(0)" id="nav-0" class="py-3 text-[#874FC2] border-t-2 border-[#874FC2]">全部</button>
-        <button onclick="switchTab(1)" id="nav-1" class="py-3 text-stone-400">💸 已付</button>
-        <button onclick="switchTab(2)" id="nav-2" class="py-3 text-stone-400">📮 到貨</button>
-        <button onclick="switchTab(3)" id="nav-3" class="py-3 text-stone-400">🏠 返屋企</button>
+        <button onclick="switchTab(0)" id="nav-0" class="py-3 flex flex-col items-center text-[#874FC2] border-t-2 border-[#874FC2]">
+            <i class="fa-solid fa-list-ul"></i><span class="mt-1">全部</span>
+        </button>
+        <button onclick="switchTab(1)" id="nav-1" class="py-3 flex flex-col items-center text-stone-400">
+            <span class="text-2xl">💸</span><span class="mt-1">已付</span>
+        </button>
+        <button onclick="switchTab(2)" id="nav-2" class="py-3 flex flex-col items-center text-stone-400">
+            <span class="text-2xl">📮</span><span class="mt-1">到貨</span>
+        </button>
+        <button onclick="switchTab(3)" id="nav-3" class="py-3 flex flex-col items-center text-stone-400">
+            <span class="text-2xl">🏠</span><span class="mt-1">返屋企</span>
+        </button>
     </div>
 </nav>
 
-<!-- Add/Edit Modal -->
+<!-- Add Modal -->
 <div id="add-modal" class="hidden fixed inset-0 bg-black/70 flex items-end z-[100]">
     <div class="bg-white w-full max-w-xl mx-auto rounded-t-3xl max-h-[92vh] overflow-hidden flex flex-col">
-        <div class="px-6 py-5 border-b flex justify-between">
-            <h3 id="modal-title" class="font-semibold text-xl">新增記錄</h3>
-            <button onclick="hideAddModal()" class="text-3xl text-stone-400">×</button>
+        <div class="px-6 py-5 border-b">
+            <h3 id="modal-title" class="text-xl font-semibold">新增記錄</h3>
         </div>
         <div class="flex-1 p-6 overflow-auto space-y-8">
             <div>
                 <label class="block text-sm font-medium text-stone-500 mb-3">商品照片</label>
-                <div id="photo-upload-area" onclick="document.getElementById('photo-input').click()" 
-                     class="border-2 border-dashed border-stone-300 rounded-3xl h-64 flex flex-col items-center justify-center cursor-pointer hover:border-[#874FC2]">
+                <div id="photo-upload-area" onclick="document.getElementById('photo-input').click()" class="border-2 border-dashed border-stone-300 rounded-3xl h-64 flex flex-col items-center justify-center cursor-pointer hover:border-[#874FC2]">
                     <i class="fa-solid fa-camera text-4xl text-stone-300 mb-3"></i>
                     <p class="text-stone-400">點擊上傳或拍照</p>
                 </div>
                 <input type="file" id="photo-input" accept="image/*" class="hidden" onchange="handlePhotoSelect(event)">
                 <div id="photo-preview" class="hidden mt-4 relative">
                     <img id="preview-img" class="w-full rounded-3xl">
-                    <button onclick="removePhoto()" class="absolute top-4 right-4 bg-red-500 text-white w-8 h-8 rounded-full">×</button>
+                    <button onclick="removePhoto()" class="absolute top-4 right-4 bg-red-500 text-white w-8 h-8 rounded-full flex items-center justify-center">×</button>
                 </div>
             </div>
             <div>
                 <label class="block text-sm font-medium text-stone-500 mb-2">備註</label>
-                <textarea id="notes-input" rows="3" class="w-full border rounded-3xl p-4" placeholder="商品名稱或備註"></textarea>
+                <textarea id="notes-input" rows="3" class="w-full border rounded-3xl p-4 focus:border-[#874FC2]" placeholder="商品名稱或備註"></textarea>
             </div>
             <div>
-                <label class="block text-sm font-medium text-stone-500 mb-3">狀態</label>
+                <label class="block text-sm font-medium text-stone-500 mb-3">目前狀態</label>
                 <div id="status-options" class="grid grid-cols-3 gap-3"></div>
             </div>
         </div>
@@ -97,13 +117,19 @@
 <!-- Detail Modal -->
 <div id="detail-modal" class="hidden fixed inset-0 bg-black/70 flex items-end z-[100]">
     <div class="bg-white w-full max-w-xl mx-auto rounded-t-3xl overflow-hidden">
-        <!-- 詳情內容 -->
-        <div class="p-6">
-            <div class="flex justify-end"><button onclick="hideDetailModal()" class="text-3xl">×</button></div>
-            <img id="detail-img" class="w-full rounded-3xl mb-6">
-            <div id="detail-notes" class="text-lg mb-4"></div>
-            <div id="detail-status"></div>
+        <div class="p-6 relative">
+            <button onclick="hideDetailModal()" class="absolute top-6 right-6 text-3xl text-stone-400">×</button>
+            
+            <div class="relative">
+                <img id="detail-img" class="w-full rounded-3xl">
+                <button onclick="prevRecord()" class="absolute left-4 top-1/2 -translate-y-1/2 bg-white/90 w-11 h-11 rounded-2xl flex items-center justify-center text-2xl shadow">←</button>
+                <button onclick="nextRecord()" class="absolute right-4 top-1/2 -translate-y-1/2 bg-white/90 w-11 h-11 rounded-2xl flex items-center justify-center text-2xl shadow">→</button>
+            </div>
+
+            <div id="detail-notes" class="mt-6 text-lg"></div>
+            <div id="detail-status" class="mt-6"></div>
         </div>
+        
         <div class="border-t p-6 flex gap-3">
             <button onclick="editCurrentRecord()" class="flex-1 py-4 border rounded-3xl">編輯</button>
             <button onclick="deleteCurrentRecord()" class="flex-1 py-4 bg-red-50 text-red-600 rounded-3xl">刪除</button>
@@ -113,16 +139,14 @@
 
 <!-- Backup Modal -->
 <div id="backup-modal" class="hidden fixed inset-0 bg-black/70 flex items-center justify-center z-[200]">
-    <div class="bg-white rounded-3xl w-full max-w-sm mx-4">
+    <div class="bg-white rounded-3xl max-w-sm w-full mx-4">
         <div class="p-8">
             <h3 class="text-2xl font-semibold mb-6">備份與還原</h3>
             <div class="space-y-4">
-                <button onclick="exportData()" 
-                        class="w-full py-5 border-2 border-stone-300 hover:border-stone-400 rounded-3xl flex items-center justify-center gap-3 text-base">
+                <button onclick="exportData()" class="w-full py-5 border-2 border-stone-300 hover:border-stone-400 rounded-3xl flex items-center justify-center gap-3">
                     <i class="fa-solid fa-download"></i> 下載備份 JSON
                 </button>
-                <button onclick="document.getElementById('import-input').click()" 
-                        class="w-full py-5 bg-[#874FC2] text-white rounded-3xl flex items-center justify-center gap-3 text-base">
+                <button onclick="document.getElementById('import-input').click()" class="w-full py-5 bg-[#874FC2] text-white rounded-3xl flex items-center justify-center gap-3">
                     <i class="fa-solid fa-upload"></i> 上傳備份 JSON
                 </button>
                 <input type="file" id="import-input" accept=".json" class="hidden" onchange="importData(event)">
@@ -137,7 +161,7 @@
 <!-- Toast -->
 <div id="toast" class="hidden fixed bottom-6 left-1/2 -translate-x-1/2 bg-green-600 text-white px-6 py-4 rounded-3xl shadow-2xl flex items-center gap-3 z-[300]">
     <i class="fa-solid fa-check-circle"></i>
-    <span id="toast-text" class="font-medium"></span>
+    <span id="toast-text"></span>
 </div>
 
 <script>
@@ -146,7 +170,14 @@
     let currentDetailId = null;
     let currentPhotoBase64 = null;
     let currentTab = 0;
+    let detailRecordIds = [];
     let currentStatus = 'paid';
+
+    const STATUS_OPTIONS = [
+        { key: 'paid', emoji: '💸', label: '已付款' },
+        { key: 'shipped', emoji: '📮', label: '已到貨' },
+        { key: 'home', emoji: '🏠', label: '返咗屋企' }
+    ];
 
     function loadRecords() {
         records = JSON.parse(localStorage.getItem('purchaseRecords') || '[]');
@@ -158,16 +189,46 @@
     }
 
     function renderAll() {
-        const container = document.getElementById('all-grid');
+        // All
+        renderGrid('all-grid', records);
+        document.getElementById('all-count').textContent = records.length;
+        
+        // Paid, Shipped, Home
+        renderGrid('paid-grid', records.filter(r => r.status === 'paid'));
+        renderGrid('shipped-grid', records.filter(r => r.status === 'shipped'));
+        renderGrid('home-grid', records.filter(r => r.status === 'home'));
+    }
+
+    function renderGrid(id, data) {
+        const container = document.getElementById(id);
         container.innerHTML = '';
-        records.forEach(r => {
+        data.forEach(record => {
             const div = document.createElement('div');
-            div.className = 'bg-white rounded-3xl overflow-hidden shadow-sm cursor-pointer';
-            div.innerHTML = `<img src="${r.image}" class="w-full aspect-square object-cover"><div class="p-3"><div class="font-medium">${r.notes}</div></div>`;
-            div.onclick = () => showDetail(r.id);
+            div.className = 'card bg-white rounded-3xl overflow-hidden shadow-sm cursor-pointer';
+            div.innerHTML = `
+                <img src="${record.image}" class="w-full aspect-square object-cover">
+                <div class="p-3">
+                    <div class="font-medium">${record.notes || '無備註'}</div>
+                </div>
+            `;
+            div.onclick = () => showDetail(record.id);
             container.appendChild(div);
         });
-        document.getElementById('all-count').textContent = records.length;
+    }
+
+    function switchTab(tab) {
+        currentTab = tab;
+        document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+        document.getElementById(['tab-all','tab-paid','tab-shipped','tab-home'][tab]).classList.remove('hidden');
+
+        for (let i = 0; i < 4; i++) {
+            const btn = document.getElementById(`nav-${i}`);
+            if (i === tab) {
+                btn.classList.add('text-[#874FC2]', 'border-t-2', 'border-[#874FC2]');
+            } else {
+                btn.classList.remove('text-[#874FC2]', 'border-t-2', 'border-[#874FC2]');
+            }
+        }
     }
 
     function showAddModal() {
@@ -175,11 +236,24 @@
         document.getElementById('notes-input').value = '';
         document.getElementById('photo-preview').classList.add('hidden');
         document.getElementById('photo-upload-area').classList.remove('hidden');
+        renderStatusOptions();
         document.getElementById('add-modal').classList.remove('hidden');
     }
 
     function hideAddModal() {
         document.getElementById('add-modal').classList.add('hidden');
+    }
+
+    function renderStatusOptions() {
+        const container = document.getElementById('status-options');
+        container.innerHTML = '';
+        STATUS_OPTIONS.forEach(s => {
+            const btn = document.createElement('button');
+            btn.className = `py-4 rounded-3xl border-2 ${currentStatus === s.key ? 'border-[#874FC2] bg-[#874FC2]/10' : 'border-transparent hover:bg-stone-100'}`;
+            btn.innerHTML = `<div class="text-4xl">${s.emoji}</div><div class="text-xs mt-1">${s.label}</div>`;
+            btn.onclick = () => { currentStatus = s.key; renderStatusOptions(); };
+            container.appendChild(btn);
+        });
     }
 
     function handlePhotoSelect(e) {
@@ -204,33 +278,36 @@
     function saveRecord() {
         const notes = document.getElementById('notes-input').value.trim();
         if (!currentPhotoBase64) {
-            alert("請上傳照片！");
+            alert("請上傳一張照片！");
             return;
         }
         const newRecord = {
-            id: Date.now().toString(),
+            id: 'rec_' + Date.now(),
             image: currentPhotoBase64,
             notes: notes || "無備註",
+            status: currentStatus,
             timestamp: Date.now()
         };
         records.unshift(newRecord);
         saveToStorage();
         hideAddModal();
         renderAll();
-        showToast("✅ 新增成功！");
+        showToast("✅ 記錄新增成功！");
     }
 
     function showToast(msg) {
-        const t = document.getElementById('toast');
+        const toast = document.getElementById('toast');
         document.getElementById('toast-text').textContent = msg;
-        t.classList.remove('hidden');
-        setTimeout(() => t.classList.add('hidden'), 2800);
+        toast.classList.remove('hidden');
+        setTimeout(() => toast.classList.add('hidden'), 2800);
     }
 
     function showDetail(id) {
-        const record = records.find(r => r.id === id);
-        if (!record) return;
+        const sorted = records.sort((a,b) => b.timestamp - a.timestamp);
+        detailRecordIds = sorted.map(r => r.id);
         currentDetailId = id;
+        
+        const record = records.find(r => r.id === id);
         document.getElementById('detail-img').src = record.image;
         document.getElementById('detail-notes').textContent = record.notes;
         document.getElementById('detail-modal').classList.remove('hidden');
@@ -240,11 +317,23 @@
         document.getElementById('detail-modal').classList.add('hidden');
     }
 
-    function editCurrentRecord() {
-        hideDetailModal();
-        // 這裡可以擴展編輯功能
+    function prevRecord() {
+        const idx = detailRecordIds.indexOf(currentDetailId);
+        if (idx > 0) {
+            currentDetailId = detailRecordIds[idx - 1];
+            showDetail(currentDetailId);
+        }
     }
 
+    function nextRecord() {
+        const idx = detailRecordIds.indexOf(currentDetailId);
+        if (idx < detailRecordIds.length - 1) {
+            currentDetailId = detailRecordIds[idx + 1];
+            showDetail(currentDetailId);
+        }
+    }
+
+    function editCurrentRecord() { hideDetailModal(); /* 可擴展 */ }
     function deleteCurrentRecord() {
         if (confirm("確定刪除？")) {
             records = records.filter(r => r.id !== currentDetailId);
@@ -256,12 +345,6 @@
 
     function changeSortOrder() { renderAll(); }
 
-    function switchTab(tab) {
-        currentTab = tab;
-        document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
-        document.getElementById('tab-all').classList.remove('hidden');
-    }
-
     function showBackupModal() {
         document.getElementById('backup-modal').classList.remove('hidden');
     }
@@ -272,12 +355,12 @@
 
     function exportData() {
         if (records.length === 0) return alert("沒有資料可備份");
-        const dataStr = JSON.stringify(records, null, 2);
-        const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
-        const link = document.createElement('a');
-        link.href = dataUri;
-        link.download = `備份_${new Date().toISOString().slice(0,10)}.json`;
-        link.click();
+        const str = JSON.stringify(records, null, 2);
+        const uri = 'data:application/json;charset=utf-8,' + encodeURIComponent(str);
+        const a = document.createElement('a');
+        a.href = uri;
+        a.download = `purchase_backup_${new Date().toISOString().slice(0,10)}.json`;
+        a.click();
         hideBackupModal();
         showToast("✅ 備份已下載");
     }
@@ -286,15 +369,15 @@
         const file = e.target.files[0];
         if (!file) return;
         const reader = new FileReader();
-        reader.onload = function(ev) {
+        reader.onload = ev => {
             try {
-                const imported = JSON.parse(ev.target.result);
-                if (confirm(`確認匯入 ${imported.length} 筆記錄？現有資料將被替換。`)) {
-                    records = imported;
+                const data = JSON.parse(ev.target.result);
+                if (confirm(`匯入 ${data.length} 筆記錄？`)) {
+                    records = data;
                     saveToStorage();
                     renderAll();
                     hideBackupModal();
-                    showToast("✅ 備份已成功匯入！");
+                    showToast("✅ 備份匯入成功！");
                 }
             } catch(err) {
                 alert("檔案格式錯誤！");
@@ -307,7 +390,6 @@
     window.onload = () => {
         loadRecords();
         switchTab(0);
-        console.log("%c✅ App 已載入", "color:#874FC2");
     };
 </script>
 </body>
