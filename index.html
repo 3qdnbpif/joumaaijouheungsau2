@@ -14,13 +14,11 @@
         #detail-img { width: 100%; height: auto; max-height: 45vh; object-fit: contain; border-radius: 1.5rem; }
         .nav-arrow {
             position: absolute; top: 50%; transform: translateY(-50%);
-            width: 48px; height: 48px;
-            background: rgba(255,255,255,0.9); backdrop-filter: blur(8px);
+            width: 48px; height: 48px; background: rgba(255,255,255,0.9); backdrop-filter: blur(8px);
             border: 1px solid #e5e5e5; box-shadow: 0 4px 12px rgba(0,0,0,0.1);
             border-radius: 9999px; display: flex; align-items: center; justify-content: center;
             font-size: 26px; z-index: 30;
         }
-        .close-btn { padding: 12px 18px; font-size: 32px; line-height: 1; }
     </style>
 </head>
 <body class="bg-stone-50 min-h-screen pb-20">
@@ -71,22 +69,14 @@
 <!-- Bottom Navigation -->
 <nav class="fixed bottom-0 left-0 right-0 bg-white border-t z-50">
     <div class="max-w-xl mx-auto grid grid-cols-4 text-xs">
-        <button onclick="switchTab(0)" id="nav-0" class="py-3 flex flex-col items-center text-[#874FC2] border-t-2 border-[#874FC2]">
-            <i class="fa-solid fa-list-ul"></i><span class="mt-1">全部</span>
-        </button>
-        <button onclick="switchTab(1)" id="nav-1" class="py-3 flex flex-col items-center text-stone-400">
-            <span class="text-2xl">💸</span><span class="mt-1">已付</span>
-        </button>
-        <button onclick="switchTab(2)" id="nav-2" class="py-3 flex flex-col items-center text-stone-400">
-            <span class="text-2xl">📮</span><span class="mt-1">到貨</span>
-        </button>
-        <button onclick="switchTab(3)" id="nav-3" class="py-3 flex flex-col items-center text-stone-400">
-            <span class="text-2xl">🏠</span><span class="mt-1">返屋企</span>
-        </button>
+        <button onclick="switchTab(0)" id="nav-0" class="py-3 flex flex-col items-center text-[#874FC2] border-t-2 border-[#874FC2]">全部</button>
+        <button onclick="switchTab(1)" id="nav-1" class="py-3 flex flex-col items-center text-stone-400">💸 已付</button>
+        <button onclick="switchTab(2)" id="nav-2" class="py-3 flex flex-col items-center text-stone-400">📮 到貨</button>
+        <button onclick="switchTab(3)" id="nav-3" class="py-3 flex flex-col items-center text-stone-400">🏠 返屋企</button>
     </div>
 </nav>
 
-<!-- Add Modal (保持不變) -->
+<!-- Add/Edit Modal -->
 <div id="add-modal" class="hidden fixed inset-0 bg-black/70 flex items-end z-[100]">
     <div class="bg-white w-full max-w-xl mx-auto rounded-t-3xl max-h-[92vh] overflow-hidden flex flex-col">
         <div class="px-6 py-5 border-b">
@@ -125,20 +115,12 @@
 <!-- Detail Modal -->
 <div id="detail-modal" class="hidden fixed inset-0 bg-black/70 flex items-end z-[100]">
     <div class="bg-white w-full max-w-xl mx-auto rounded-t-3xl overflow-hidden">
-        <div class="p-6 relative">
-            <!-- 加大關閉按鈕區域 -->
-            <button onclick="hideDetailModal()" class="close-btn absolute top-4 right-4 text-stone-400 hover:text-stone-600 z-40">×</button>
-            
-            <div class="detail-image-container mb-6">
-                <img id="detail-img" class="w-full rounded-3xl">
-                <button onclick="prevRecord()" class="nav-arrow left-4">←</button>
-                <button onclick="nextRecord()" class="nav-arrow right-4">→</button>
-            </div>
-
+        <div class="p-6">
+            <button onclick="hideDetailModal()" class="float-right text-3xl text-stone-400">×</button>
+            <img id="detail-img" class="w-full rounded-3xl mb-6">
             <div id="detail-notes" class="text-lg mb-4"></div>
             <div id="detail-status" class="mb-6"></div>
         </div>
-        
         <div class="border-t p-6 flex gap-3">
             <button onclick="editCurrentRecord()" class="flex-1 py-4 border rounded-3xl">編輯</button>
             <button onclick="deleteCurrentRecord()" class="flex-1 py-4 bg-red-50 text-red-600 rounded-3xl">刪除</button>
@@ -200,16 +182,25 @@
     function renderAll() {
         renderGrid('all-grid', records);
         document.getElementById('all-count').textContent = records.length;
+        
+        renderGrid('paid-grid', records.filter(r => r.status === 'paid'));
+        renderGrid('shipped-grid', records.filter(r => r.status === 'shipped'));
+        renderGrid('home-grid', records.filter(r => r.status === 'home'));
     }
 
-    function renderGrid(id, data) {
-        const container = document.getElementById(id);
+    function renderGrid(containerId, filtered) {
+        const container = document.getElementById(containerId);
         container.innerHTML = '';
-        data.forEach(r => {
+        filtered.forEach(record => {
             const div = document.createElement('div');
             div.className = 'card bg-white rounded-3xl overflow-hidden shadow-sm cursor-pointer';
-            div.innerHTML = `<img src="${r.image}" class="w-full aspect-square object-cover"><div class="p-3"><div class="font-medium">${r.notes || '無備註'}</div></div>`;
-            div.onclick = () => showDetail(r.id);
+            div.innerHTML = `
+                <img src="${record.image}" class="w-full aspect-square object-cover">
+                <div class="p-3">
+                    <div class="font-medium">${record.notes || '無備註'}</div>
+                </div>
+            `;
+            div.onclick = () => showDetail(record.id);
             container.appendChild(div);
         });
     }
@@ -218,25 +209,24 @@
         currentTab = tab;
         document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
         document.getElementById(['tab-all','tab-paid','tab-shipped','tab-home'][tab]).classList.remove('hidden');
-
-        // 修復底部導航高亮
-        for (let i = 0; i < 4; i++) {
-            const btn = document.getElementById(`nav-${i}`);
-            if (i === tab) {
-                btn.classList.add('text-[#874FC2]', 'border-t-2', 'border-[#874FC2]');
-                btn.classList.remove('text-stone-400');
-            } else {
-                btn.classList.remove('text-[#874FC2]', 'border-t-2', 'border-[#874FC2]');
-                btn.classList.add('text-stone-400');
-            }
-        }
     }
 
-    function showAddModal() {
-        currentPhotoBase64 = null;
-        document.getElementById('notes-input').value = '';
-        document.getElementById('photo-preview').classList.add('hidden');
-        document.getElementById('photo-upload-area').classList.remove('hidden');
+    function showAddModal(editRecord = null) {
+        currentEditId = editRecord ? editRecord.id : null;
+        currentPhotoBase64 = editRecord ? editRecord.image : null;
+        document.getElementById('modal-title').textContent = editRecord ? '編輯記錄' : '新增記錄';
+        document.getElementById('notes-input').value = editRecord ? (editRecord.notes || '') : '';
+
+        if (editRecord && editRecord.image) {
+            document.getElementById('photo-preview').classList.remove('hidden');
+            document.getElementById('photo-upload-area').classList.add('hidden');
+            document.getElementById('preview-img').src = editRecord.image;
+        } else {
+            document.getElementById('photo-preview').classList.add('hidden');
+            document.getElementById('photo-upload-area').classList.remove('hidden');
+        }
+
+        currentStatus = editRecord ? editRecord.status : 'paid';
         renderStatusOptions();
         document.getElementById('add-modal').classList.remove('hidden');
     }
@@ -278,18 +268,33 @@
 
     function saveRecord() {
         const notes = document.getElementById('notes-input').value.trim();
-        if (!currentPhotoBase64) return alert("請上傳照片！");
-        records.unshift({
-            id: 'rec_' + Date.now(),
-            image: currentPhotoBase64,
-            notes: notes || "無備註",
-            status: currentStatus,
-            timestamp: Date.now()
-        });
+        if (!currentPhotoBase64 && !currentEditId) {
+            alert("請上傳照片！");
+            return;
+        }
+
+        if (currentEditId) {
+            const record = records.find(r => r.id === currentEditId);
+            if (record) {
+                record.notes = notes || "無備註";
+                if (currentPhotoBase64) record.image = currentPhotoBase64;
+                record.status = currentStatus;
+            }
+        } else {
+            const newRecord = {
+                id: 'rec_' + Date.now(),
+                image: currentPhotoBase64,
+                notes: notes || "無備註",
+                status: currentStatus,
+                timestamp: Date.now()
+            };
+            records.unshift(newRecord);
+        }
+
         saveToStorage();
         hideAddModal();
-        renderAll();
-        showToast("✅ 新增成功！");
+        renderAll();           // 關鍵：重新渲染所有分頁
+        showToast(currentEditId ? "✅ 更新成功" : "✅ 新增成功！");
     }
 
     function showToast(msg) {
@@ -303,46 +308,25 @@
         const sorted = [...records].sort((a,b) => b.timestamp - a.timestamp);
         detailRecordIds = sorted.map(r => r.id);
         currentDetailId = id;
-        
         const record = records.find(r => r.id === id);
+        
         document.getElementById('detail-img').src = record.image;
         document.getElementById('detail-notes').textContent = record.notes;
-        
-        // 顯示狀態
-        document.getElementById('detail-status').innerHTML = `
-            <div class="inline-flex items-center gap-2 px-5 py-2 bg-${record.status === 'paid' ? 'emerald' : record.status === 'shipped' ? 'blue' : 'purple'}-100 text-${record.status === 'paid' ? 'emerald' : record.status === 'shipped' ? 'blue' : 'purple'}-700 rounded-3xl">
-                ${getStatusEmoji(record.status)} ${getStatusLabel(record.status)}
-            </div>
-        `;
-        
         document.getElementById('detail-modal').classList.remove('hidden');
-    }
-
-    function getStatusEmoji(status) {
-        const found = STATUS_OPTIONS.find(s => s.key === status);
-        return found ? found.emoji : '';
-    }
-
-    function getStatusLabel(status) {
-        const found = STATUS_OPTIONS.find(s => s.key === status);
-        return found ? found.label : '';
     }
 
     function hideDetailModal() {
         document.getElementById('detail-modal').classList.add('hidden');
     }
 
-    function prevRecord() {
-        const idx = detailRecordIds.indexOf(currentDetailId);
-        if (idx > 0) showDetail(detailRecordIds[idx-1]);
+    function editCurrentRecord() {
+        const record = records.find(r => r.id === currentDetailId);
+        if (record) {
+            hideDetailModal();
+            setTimeout(() => showAddModal(record), 300);
+        }
     }
 
-    function nextRecord() {
-        const idx = detailRecordIds.indexOf(currentDetailId);
-        if (idx < detailRecordIds.length - 1) showDetail(detailRecordIds[idx+1]);
-    }
-
-    function editCurrentRecord() { /* 可後續擴展 */ }
     function deleteCurrentRecord() {
         if (confirm("確定刪除？")) {
             records = records.filter(r => r.id !== currentDetailId);
