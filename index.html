@@ -11,10 +11,11 @@
         body { font-family: 'Noto Sans HK', system-ui, sans-serif; }
         .card { transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
         
+        /* 加大相片與文字之間的間距（增加一倍左右） */
         .detail-image-container { 
             position: relative; 
             max-height: 45vh; 
-            margin-bottom: 40px; /* 加大間距，避免遮字 */
+            margin-bottom: 48px; /* 加大間距 */
         }
         #detail-img { 
             width: 100%; 
@@ -131,14 +132,20 @@
         <div class="p-6">
             <button onclick="hideDetailModal()" class="float-right text-4xl text-stone-400 leading-none pr-2">×</button>
             
-            <div class="detail-image-container mb-10">
+            <!-- 圖片區域 -->
+            <div class="detail-image-container mb-12">   <!-- 加大間距至 mb-12 -->
                 <img id="detail-img" class="w-full rounded-3xl">
                 <button onclick="prevRecord()" class="nav-arrow left-4">←</button>
                 <button onclick="nextRecord()" class="nav-arrow right-4">→</button>
             </div>
 
-            <div id="detail-notes" class="text-lg mb-6"></div>
-            
+            <!-- 備註 -->
+            <div class="mb-6">
+                <div class="text-xs text-stone-400 mb-1">備註</div>
+                <div id="detail-notes" class="text-lg leading-relaxed"></div>
+            </div>
+
+            <!-- 狀態 -->
             <div>
                 <div class="text-xs text-stone-400 mb-2">狀態</div>
                 <div id="detail-status"></div>
