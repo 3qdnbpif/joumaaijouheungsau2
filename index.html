@@ -242,6 +242,15 @@
         currentTab = tab;
         document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
         document.getElementById(['tab-all','tab-paid','tab-shipped','tab-home'][tab]).classList.remove('hidden');
+        
+        // 底部高亮
+        document.querySelectorAll('nav button').forEach((btn, i) => {
+            if (i === tab) {
+                btn.classList.add('text-[#874FC2]', 'border-t-2', 'border-[#874FC2]');
+            } else {
+                btn.classList.remove('text-[#874FC2]', 'border-t-2', 'border-[#874FC2]');
+            }
+        });
     }
 
     function showAddModal(editRecord = null) {
