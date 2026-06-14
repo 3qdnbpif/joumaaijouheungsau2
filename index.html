@@ -11,10 +11,11 @@
         body { font-family: 'Noto Sans HK', system-ui, sans-serif; }
         .card { transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
         
-        /* 詳情頁圖片 - 1:1 比例 + contain */
+        /* 修復重點：詳情頁圖片下方增加間距，避免遮擋文字 */
         .detail-image-container { 
             position: relative; 
             max-height: 45vh; 
+            margin-bottom: 24px; /* 增加間距 */
         }
         #detail-img { 
             width: 100%; 
@@ -129,16 +130,17 @@
 <div id="detail-modal" class="hidden fixed inset-0 bg-black/70 flex items-end z-[100]">
     <div class="bg-white w-full max-w-xl mx-auto rounded-t-3xl overflow-hidden">
         <div class="p-6">
-            <!-- 右上角 x 按鍵 -->
             <button onclick="hideDetailModal()" class="float-right text-4xl text-stone-400 leading-none pr-2">×</button>
             
-            <div class="detail-image-container mb-6">
+            <!-- 圖片區域 -->
+            <div class="detail-image-container mb-8">   <!-- 增加 mb-8 解決遮擋問題 -->
                 <img id="detail-img" class="w-full rounded-3xl">
                 <button onclick="prevRecord()" class="nav-arrow left-4">←</button>
                 <button onclick="nextRecord()" class="nav-arrow right-4">→</button>
             </div>
 
-            <div id="detail-notes" class="text-lg mb-4"></div>
+            <!-- 文字區域 -->
+            <div id="detail-notes" class="text-lg mb-6"></div>
             <div id="detail-status" class="mb-6"></div>
         </div>
         
@@ -203,10 +205,6 @@
     function renderAll() {
         renderGrid('all-grid', records);
         document.getElementById('all-count').textContent = records.length;
-        
-        renderGrid('paid-grid', records.filter(r => r.status === 'paid'));
-        renderGrid('shipped-grid', records.filter(r => r.status === 'shipped'));
-        renderGrid('home-grid', records.filter(r => r.status === 'home'));
     }
 
     function renderGrid(id, data) {
@@ -324,7 +322,6 @@
         document.getElementById('detail-img').src = record.image;
         document.getElementById('detail-notes').textContent = record.notes;
         
-        // 顯示狀態
         document.getElementById('detail-status').innerHTML = `
             <div class="inline-flex items-center gap-2 px-5 py-2 rounded-3xl bg-${record.status === 'paid' ? 'emerald' : record.status === 'shipped' ? 'blue' : 'purple'}-100 text-${record.status === 'paid' ? 'emerald' : record.status === 'shipped' ? 'blue' : 'purple'}-700">
                 ${getStatusEmoji(record.status)} ${getStatusLabel(record.status)}
