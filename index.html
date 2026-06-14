@@ -14,7 +14,7 @@
         .detail-image-container { 
             position: relative; 
             max-height: 45vh; 
-            margin-bottom: 40px;
+            margin-bottom: 24px; /* 恢復之前你覺得OK的間距 */
         }
         #detail-img { 
             width: 100%; 
@@ -24,24 +24,22 @@
             border-radius: 1.5rem; 
         }
         
-        /* 箭頭按鈕 - 移到圖片左右兩側，半透明圓角，置中 */
         .nav-arrow {
             position: absolute; 
             top: 50%; 
             transform: translateY(-50%);
             width: 52px; 
             height: 52px;
-            background: rgba(255,255,255,0.85); 
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(229,229,229,0.8);
-            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+            background: rgba(255,255,255,0.88); 
+            backdrop-filter: blur(8px);
+            border: 1px solid #ddd; 
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
             border-radius: 9999px; 
             display: flex; 
             align-items: center; 
             justify-content: center;
-            font-size: 28px; 
+            font-size: 26px; 
             z-index: 30;
-            color: #333;
         }
     </style>
 </head>
@@ -143,15 +141,17 @@
             <!-- 右上角 x 按鍵 - 加大點擊區域 -->
             <button onclick="hideDetailModal()" class="float-right text-4xl text-stone-400 leading-none pr-4 pt-1">×</button>
             
-            <!-- 圖片 + 箭頭 -->
-            <div class="detail-image-container mb-10">
+            <div class="detail-image-container mb-8">
                 <img id="detail-img" class="w-full rounded-3xl">
                 <button onclick="prevRecord()" class="nav-arrow left-4">←</button>
                 <button onclick="nextRecord()" class="nav-arrow right-4">→</button>
             </div>
 
-            <div id="detail-notes" class="text-lg mb-6"></div>
-            
+            <div class="mb-6">
+                <div class="text-xs text-stone-400 mb-1">備註</div>
+                <div id="detail-notes" class="text-lg"></div>
+            </div>
+
             <div>
                 <div class="text-xs text-stone-400 mb-2">狀態</div>
                 <div id="detail-status"></div>
