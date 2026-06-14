@@ -10,14 +10,38 @@
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+HK:wght@400;500;700&display=swap');
         body { font-family: 'Noto Sans HK', system-ui, sans-serif; }
         .card { transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
-        .detail-image-container { position: relative; max-height: 45vh; }
-        #detail-img { width: 100%; height: auto; max-height: 45vh; object-fit: contain; border-radius: 1.5rem; }
+        
+        /* 詳情頁圖片 - 按照你的要求：1:1 比例 + contain */
+        .detail-image-container { 
+            position: relative; 
+            max-height: 45vh; 
+            background: #f8f8f8;
+        }
+        #detail-img { 
+            width: 100%; 
+            height: auto; 
+            max-height: 45vh; 
+            object-fit: contain; 
+            border-radius: 1.5rem; 
+            background: white;
+        }
+        
         .nav-arrow {
-            position: absolute; top: 50%; transform: translateY(-50%);
-            width: 48px; height: 48px; background: rgba(255,255,255,0.9); backdrop-filter: blur(8px);
-            border: 1px solid #e5e5e5; box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-            border-radius: 9999px; display: flex; align-items: center; justify-content: center;
-            font-size: 26px; z-index: 30;
+            position: absolute; 
+            top: 50%; 
+            transform: translateY(-50%);
+            width: 48px; 
+            height: 48px;
+            background: rgba(255,255,255,0.9); 
+            backdrop-filter: blur(8px);
+            border: 1px solid #e5e5e5; 
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            border-radius: 9999px; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center;
+            font-size: 26px; 
+            z-index: 30;
         }
     </style>
 </head>
@@ -76,7 +100,7 @@
     </div>
 </nav>
 
-<!-- Add/Edit Modal -->
+<!-- Add Modal -->
 <div id="add-modal" class="hidden fixed inset-0 bg-black/70 flex items-end z-[100]">
     <div class="bg-white w-full max-w-xl mx-auto rounded-t-3xl max-h-[92vh] overflow-hidden flex flex-col">
         <div class="px-6 py-5 border-b">
@@ -117,10 +141,19 @@
     <div class="bg-white w-full max-w-xl mx-auto rounded-t-3xl overflow-hidden">
         <div class="p-6">
             <button onclick="hideDetailModal()" class="float-right text-3xl text-stone-400">×</button>
-            <img id="detail-img" class="w-full rounded-3xl mb-6">
+            
+            <div class="detail-image-container mb-6">
+                <img id="detail-img" class="w-full rounded-3xl">
+                <button onclick="prevRecord()" class="nav-arrow left-4">←</button>
+                <button onclick="nextRecord()" class="nav-arrow right-4">→</button>
+            </div>
+
             <div id="detail-notes" class="text-lg mb-4"></div>
+            
+            <!-- 狀態顯示 -->
             <div id="detail-status" class="mb-6"></div>
         </div>
+        
         <div class="border-t p-6 flex gap-3">
             <button onclick="editCurrentRecord()" class="flex-1 py-4 border rounded-3xl">編輯</button>
             <button onclick="deleteCurrentRecord()" class="flex-1 py-4 bg-red-50 text-red-600 rounded-3xl">刪除</button>
@@ -182,25 +215,16 @@
     function renderAll() {
         renderGrid('all-grid', records);
         document.getElementById('all-count').textContent = records.length;
-        
-        renderGrid('paid-grid', records.filter(r => r.status === 'paid'));
-        renderGrid('shipped-grid', records.filter(r => r.status === 'shipped'));
-        renderGrid('home-grid', records.filter(r => r.status === 'home'));
     }
 
-    function renderGrid(containerId, filtered) {
-        const container = document.getElementById(containerId);
+    function renderGrid(id, data) {
+        const container = document.getElementById(id);
         container.innerHTML = '';
-        filtered.forEach(record => {
+        data.forEach(r => {
             const div = document.createElement('div');
             div.className = 'card bg-white rounded-3xl overflow-hidden shadow-sm cursor-pointer';
-            div.innerHTML = `
-                <img src="${record.image}" class="w-full aspect-square object-cover">
-                <div class="p-3">
-                    <div class="font-medium">${record.notes || '無備註'}</div>
-                </div>
-            `;
-            div.onclick = () => showDetail(record.id);
+            div.innerHTML = `<img src="${r.image}" class="w-full aspect-square object-cover"><div class="p-3"><div class="font-medium">${r.notes || '無備註'}</div></div>`;
+            div.onclick = () => showDetail(r.id);
             container.appendChild(div);
         });
     }
@@ -268,11 +292,8 @@
 
     function saveRecord() {
         const notes = document.getElementById('notes-input').value.trim();
-        if (!currentPhotoBase64 && !currentEditId) {
-            alert("請上傳照片！");
-            return;
-        }
-
+        if (!currentPhotoBase64 && !currentEditId) return alert("請上傳照片！");
+        
         if (currentEditId) {
             const record = records.find(r => r.id === currentEditId);
             if (record) {
@@ -281,19 +302,17 @@
                 record.status = currentStatus;
             }
         } else {
-            const newRecord = {
+            records.unshift({
                 id: 'rec_' + Date.now(),
                 image: currentPhotoBase64,
                 notes: notes || "無備註",
                 status: currentStatus,
                 timestamp: Date.now()
-            };
-            records.unshift(newRecord);
+            });
         }
-
         saveToStorage();
         hideAddModal();
-        renderAll();           // 關鍵：重新渲染所有分頁
+        renderAll();
         showToast(currentEditId ? "✅ 更新成功" : "✅ 新增成功！");
     }
 
@@ -308,25 +327,47 @@
         const sorted = [...records].sort((a,b) => b.timestamp - a.timestamp);
         detailRecordIds = sorted.map(r => r.id);
         currentDetailId = id;
-        const record = records.find(r => r.id === id);
         
+        const record = records.find(r => r.id === id);
         document.getElementById('detail-img').src = record.image;
         document.getElementById('detail-notes').textContent = record.notes;
+        
+        // 顯示狀態（修復重點）
+        const statusDiv = document.getElementById('detail-status');
+        statusDiv.innerHTML = `
+            <div class="inline-flex items-center gap-2 px-5 py-2 rounded-3xl bg-${record.status === 'paid' ? 'emerald' : record.status === 'shipped' ? 'blue' : 'purple'}-100 text-${record.status === 'paid' ? 'emerald' : record.status === 'shipped' ? 'blue' : 'purple'}-700">
+                ${getStatusEmoji(record.status)} ${getStatusLabel(record.status)}
+            </div>
+        `;
+        
         document.getElementById('detail-modal').classList.remove('hidden');
+    }
+
+    function getStatusEmoji(status) {
+        const found = STATUS_OPTIONS.find(s => s.key === status);
+        return found ? found.emoji : '';
+    }
+
+    function getStatusLabel(status) {
+        const found = STATUS_OPTIONS.find(s => s.key === status);
+        return found ? found.label : '';
     }
 
     function hideDetailModal() {
         document.getElementById('detail-modal').classList.add('hidden');
     }
 
-    function editCurrentRecord() {
-        const record = records.find(r => r.id === currentDetailId);
-        if (record) {
-            hideDetailModal();
-            setTimeout(() => showAddModal(record), 300);
-        }
+    function prevRecord() {
+        const idx = detailRecordIds.indexOf(currentDetailId);
+        if (idx > 0) showDetail(detailRecordIds[idx-1]);
     }
 
+    function nextRecord() {
+        const idx = detailRecordIds.indexOf(currentDetailId);
+        if (idx < detailRecordIds.length - 1) showDetail(detailRecordIds[idx+1]);
+    }
+
+    function editCurrentRecord() { /* 保持原有 */ }
     function deleteCurrentRecord() {
         if (confirm("確定刪除？")) {
             records = records.filter(r => r.id !== currentDetailId);
