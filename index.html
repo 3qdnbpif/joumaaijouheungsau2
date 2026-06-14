@@ -325,40 +325,46 @@
     function saveRecord() {
         const notes = document.getElementById('notes-input').value.trim();
         
+        // 嚴格檢查
         if (!currentPhotoBase64 && !currentEditId) {
             alert("請上傳照片！");
             return;
         }
-        
-        if (currentEditId) {
-            const record = records.find(r => r.id === currentEditId);
-            if (record) {
-                record.notes = notes || "無備註";
-                if (currentPhotoBase64) record.image = currentPhotoBase64;
-                record.status = currentStatus;
+
+        try {
+            if (currentEditId) {
+                const record = records.find(r => r.id === currentEditId);
+                if (record) {
+                    record.notes = notes || "無備註";
+                    if (currentPhotoBase64) record.image = currentPhotoBase64;
+                    record.status = currentStatus;
+                }
+            } else {
+                if (!currentPhotoBase64) {
+                    alert("請上傳照片！");
+                    return;
+                }
+                records.unshift({
+                    id: 'rec_' + Date.now(),
+                    image: currentPhotoBase64,
+                    notes: notes || "無備註",
+                    status: currentStatus,
+                    timestamp: Date.now()
+                });
             }
-        } else {
-            if (!currentPhotoBase64) {
-                alert("請上傳照片！");
-                return;
-            }
-            records.unshift({
-                id: 'rec_' + Date.now(),
-                image: currentPhotoBase64,
-                notes: notes || "無備註",
-                status: currentStatus,
-                timestamp: Date.now()
-            });
+
+            saveToStorage();
+            hideAddModal();
+            renderAll();
+            showToast(currentEditId ? "✅ 更新成功" : "✅ 新增成功！");
+            
+            // 重置狀態，防止下次異常
+            currentEditId = null;
+            currentPhotoBase64 = null;
+        } catch (err) {
+            alert("保存時發生錯誤，請再試一次");
+            console.error(err);
         }
-        
-        saveToStorage();
-        hideAddModal();
-        renderAll();           // 確保刷新所有分頁
-        showToast(currentEditId ? "✅ 更新成功" : "✅ 新增成功！");
-        
-        // 重置狀態
-        currentEditId = null;
-        currentPhotoBase64 = null;
     }
 
     function showToast(msg) {
