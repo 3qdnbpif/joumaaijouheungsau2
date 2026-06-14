@@ -15,14 +15,17 @@
             position: relative; 
             max-height: 45vh; 
             margin-bottom: 32px;
-            aspect-ratio: 1 / 1; /* 1:1 比例 */
+            padding: 0 16px; /* 兩邊留白 */
         }
         #detail-img { 
             width: 100%; 
+            max-width: 100%; 
             height: auto; 
             max-height: 45vh; 
             object-fit: contain; 
             border-radius: 1.5rem; 
+            margin: 0 auto; /* 水平置中 */
+            display: block;
         }
         
         .nav-arrow {
@@ -132,7 +135,7 @@
         </div>
         <div class="p-6 border-t flex gap-3">
             <button onclick="hideAddModal()" class="flex-1 py-4 border rounded-3xl">取消</button>
-            <button onclick="saveRecord()" class="flex-1 py-4 bg-[#874FC2] text-white rounded-3xl">保存記錄</button>
+            <button onclick="saveRecord()" id="save-btn" class="flex-1 py-4 bg-[#874FC2] text-white rounded-3xl">保存記錄</button>
         </div>
     </div>
 </div>
@@ -298,6 +301,7 @@
 
     function saveRecord() {
         const notes = document.getElementById('notes-input').value.trim();
+        
         if (!currentPhotoBase64 && !currentEditId) {
             alert("請上傳照片！");
             return;
@@ -311,6 +315,10 @@
                 record.status = currentStatus;
             }
         } else {
+            if (!currentPhotoBase64) {
+                alert("請上傳照片！");
+                return;
+            }
             records.unshift({
                 id: 'rec_' + Date.now(),
                 image: currentPhotoBase64,
@@ -319,10 +327,13 @@
                 timestamp: Date.now()
             });
         }
+        
         saveToStorage();
         hideAddModal();
         renderAll();
         showToast(currentEditId ? "✅ 更新成功" : "✅ 新增成功！");
+        currentEditId = null;
+        currentPhotoBase64 = null;
     }
 
     function showToast(msg) {
