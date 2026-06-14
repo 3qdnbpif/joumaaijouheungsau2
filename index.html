@@ -14,31 +14,33 @@
         .detail-image-container { 
             position: relative; 
             max-height: 45vh; 
-            margin-bottom: 50px; 
+            margin-bottom: 32px;
+            aspect-ratio: 1 / 1; /* 1:1 比例 */
         }
         #detail-img { 
             width: 100%; 
-            height: auto; 
+            height: 100%; 
             max-height: 45vh; 
+            max-width: 45vh; 
             object-fit: contain; 
-            border-radius: 1.5rem; 
+            border-radius: 1.5rem; /* 黃圈圓角 */
         }
         
         .nav-arrow {
             position: absolute; 
             top: 50%; 
             transform: translateY(-50%);
-            width: 36px; /* 縮小至0.7倍左右 */
-            height: 36px;
-            background: rgba(255,255,255,0.75); 
+            width: 42px; 
+            height: 42px;
+            background: rgba(255,255,255,0.85); 
             backdrop-filter: blur(8px);
-            border: 1px solid rgba(255,255,255,0.6); 
+            border: 1px solid rgba(229,229,229,0.9); 
             box-shadow: 0 4px 12px rgba(0,0,0,0.1);
             border-radius: 9999px; 
             display: flex; 
             align-items: center; 
             justify-content: center;
-            font-size: 20px; 
+            font-size: 22px; 
             font-weight: bold;
             z-index: 30;
             color: #333;
@@ -140,12 +142,10 @@
 <div id="detail-modal" class="hidden fixed inset-0 bg-black/70 flex items-end z-[100]">
     <div class="bg-white w-full max-w-xl mx-auto rounded-t-3xl overflow-hidden">
         <div class="p-6 relative">
-            <!-- 2. X 放在圖片上層 -->
-            <button onclick="hideDetailModal()" class="absolute top-8 right-8 z-40 text-4xl text-stone-400 leading-none w-10 h-10 flex items-center justify-center active:scale-90">×</button>
+            <button onclick="hideDetailModal()" class="absolute top-6 right-6 z-40 text-4xl text-stone-400 leading-none w-12 h-12 flex items-center justify-center active:scale-90">×</button>
             
             <div class="detail-image-container">
                 <img id="detail-img" class="w-full rounded-3xl">
-                <!-- 1. 箭嘴 -->
                 <button onclick="prevRecord()" class="nav-arrow left-4">‹</button>
                 <button onclick="nextRecord()" class="nav-arrow right-4">›</button>
             </div>
@@ -299,7 +299,10 @@
 
     function saveRecord() {
         const notes = document.getElementById('notes-input').value.trim();
-        if (!currentPhotoBase64 && !currentEditId) return alert("請上傳照片！");
+        if (!currentPhotoBase64 && !currentEditId) {
+            alert("請上傳照片！");
+            return;
+        }
         
         if (currentEditId) {
             const record = records.find(r => r.id === currentEditId);
