@@ -324,21 +324,28 @@
     // === 關鍵修復：saveRecord ===
         function saveRecord() {
         const notes = document.getElementById('notes-input').value.trim();
-        if (!currentPhotoBase64) {
-            alert("請上傳照片！");
-            return;
+        if (!currentPhotoBase64 && !currentEditId) return alert("請上傳照片！");
+        
+        if (currentEditId) {
+            const record = records.find(r => r.id === currentEditId);
+            if (record) {
+                record.notes = notes || "無備註";
+                if (currentPhotoBase64) record.image = currentPhotoBase64;
+                record.status = currentStatus;
+            }
+        } else {
+            records.unshift({
+                id: 'rec_' + Date.now(),
+                image: currentPhotoBase64,
+                notes: notes || "無備註",
+                status: currentStatus,
+                timestamp: Date.now()
+            });
         }
-        const newRecord = {
-            id: Date.now().toString(),
-            image: currentPhotoBase64,
-            notes: notes || "無備註",
-            timestamp: Date.now()
-        };
-        records.unshift(newRecord);
         saveToStorage();
         hideAddModal();
         renderAll();
-        showToast("✅ 新增成功！");
+        showToast(currentEditId ? "✅ 更新成功" : "✅ 新增成功！");
             
         } catch (err) {
             console.error("保存錯誤:", err);
