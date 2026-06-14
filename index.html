@@ -322,30 +322,49 @@
     }
 
     // === 關鍵修復：saveRecord ===
-        function saveRecord() {
+            function saveRecord() {
         const notes = document.getElementById('notes-input').value.trim();
-        if (!currentPhotoBase64 && !currentEditId) return alert("請上傳照片！");
         
-        if (currentEditId) {
-            const record = records.find(r => r.id === currentEditId);
-            if (record) {
-                record.notes = notes || "無備註";
-                if (currentPhotoBase64) record.image = currentPhotoBase64;
-                record.status = currentStatus;
-            }
-        } else {
-            records.unshift({
-                id: 'rec_' + Date.now(),
-                image: currentPhotoBase64,
-                notes: notes || "無備註",
-                status: currentStatus,
-                timestamp: Date.now()
-            });
+        // 強制檢查照片
+        if (!currentPhotoBase64 && !currentEditId) {
+            alert("請上傳照片！");
+            return;
         }
-        saveToStorage();
-        hideAddModal();
-        renderAll();
-        showToast(currentEditId ? "✅ 更新成功" : "✅ 新增成功！");
+
+        try {
+            if (currentEditId) {
+                // 編輯模式
+                const record = records.find(r => r.id === currentEditId);
+                if (record) {
+                    record.notes = notes || "無備註";
+                    if (currentPhotoBase64) {
+                        record.image = currentPhotoBase64;
+                    }
+                    record.status = currentStatus;
+                }
+            } else {
+                // 新增模式
+                if (!currentPhotoBase64) {
+                    alert("請上傳照片！");
+                    return;
+                }
+                records.unshift({
+                    id: 'rec_' + Date.now(),
+                    image: currentPhotoBase64,
+                    notes: notes || "無備註",
+                    status: currentStatus,
+                    timestamp: Date.now()
+                });
+            }
+
+            saveToStorage();
+            hideAddModal();
+            renderAll();
+            showToast(currentEditId ? "✅ 更新成功" : "✅ 新增成功！");
+            
+            // 重置狀態
+            currentEditId = null;
+            currentPhotoBase64 = null;
             
         } catch (err) {
             console.error("保存錯誤:", err);
