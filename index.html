@@ -322,10 +322,10 @@
     }
 
     // === 關鍵修復：saveRecord ===
-            function saveRecord() {
+                function saveRecord() {
         const notes = document.getElementById('notes-input').value.trim();
         
-        // 強制檢查照片
+        // 強制檢查照片是否存在
         if (!currentPhotoBase64 && !currentEditId) {
             alert("請上傳照片！");
             return;
@@ -337,9 +337,7 @@
                 const record = records.find(r => r.id === currentEditId);
                 if (record) {
                     record.notes = notes || "無備註";
-                    if (currentPhotoBase64) {
-                        record.image = currentPhotoBase64;
-                    }
+                    if (currentPhotoBase64) record.image = currentPhotoBase64;
                     record.status = currentStatus;
                 }
             } else {
@@ -357,18 +355,23 @@
                 });
             }
 
+            // 儲存
             saveToStorage();
+            
+            // 關閉視窗 + 刷新
             hideAddModal();
             renderAll();
+            
+            // 提示成功
             showToast(currentEditId ? "✅ 更新成功" : "✅ 新增成功！");
             
-            // 重置狀態
+            // 重置所有狀態
             currentEditId = null;
             currentPhotoBase64 = null;
             
         } catch (err) {
             console.error("保存錯誤:", err);
-            alert("保存時發生錯誤，請再試一次");
+            alert("保存失敗，請重新上傳照片後再試一次");
         }
     }
 
