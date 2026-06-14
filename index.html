@@ -222,8 +222,21 @@
     }
 
     function renderAll() {
+        // 全部
         renderGrid('all-grid', records);
         document.getElementById('all-count').textContent = records.length;
+
+        // 已付款
+        const paid = records.filter(r => r.status === 'paid');
+        renderGrid('paid-grid', paid);
+
+        // 已到貨
+        const shipped = records.filter(r => r.status === 'shipped');
+        renderGrid('shipped-grid', shipped);
+
+        // 已返屋企
+        const home = records.filter(r => r.status === 'home');
+        renderGrid('home-grid', home);
     }
 
     function renderGrid(id, data) {
@@ -308,6 +321,7 @@
         document.getElementById('photo-upload-area').classList.remove('hidden');
     }
 
+    // === 關鍵修復：saveRecord ===
     function saveRecord() {
         const notes = document.getElementById('notes-input').value.trim();
         
@@ -339,8 +353,10 @@
         
         saveToStorage();
         hideAddModal();
-        renderAll();
+        renderAll();           // 確保刷新所有分頁
         showToast(currentEditId ? "✅ 更新成功" : "✅ 新增成功！");
+        
+        // 重置狀態
         currentEditId = null;
         currentPhotoBase64 = null;
     }
