@@ -11,9 +11,11 @@
         body { font-family: 'Noto Sans HK', system-ui, sans-serif; }
         .card { transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
         
+        /* 加強詳情頁間距，避免圖片遮字 */
         .detail-image-container { 
             position: relative; 
             max-height: 45vh; 
+            margin-bottom: 32px; /* 加大間距 */
         }
         #detail-img { 
             width: 100%; 
@@ -124,15 +126,14 @@
     </div>
 </div>
 
-<!-- Detail Modal - 按照你想要的布局 -->
+<!-- Detail Modal -->
 <div id="detail-modal" class="hidden fixed inset-0 bg-black/70 flex items-end z-[100]">
     <div class="bg-white w-full max-w-xl mx-auto rounded-t-3xl overflow-hidden">
         <div class="p-6">
-            <!-- 右上角關閉按鈕 -->
             <button onclick="hideDetailModal()" class="float-right text-4xl text-stone-400 leading-none pr-2">×</button>
             
-            <!-- 圖片 -->
-            <div class="detail-image-container mb-6">
+            <!-- 圖片區域 -->
+            <div class="detail-image-container mb-10">   <!-- 加大間距 mb-10 -->
                 <img id="detail-img" class="w-full rounded-3xl">
                 <button onclick="prevRecord()" class="nav-arrow left-4">←</button>
                 <button onclick="nextRecord()" class="nav-arrow right-4">→</button>
@@ -141,7 +142,7 @@
             <!-- 備註 -->
             <div class="mb-6">
                 <div class="text-xs text-stone-400 mb-1">備註</div>
-                <div id="detail-notes" class="text-lg"></div>
+                <div id="detail-notes" class="text-lg leading-relaxed"></div>
             </div>
 
             <!-- 狀態 -->
@@ -263,165 +264,4 @@
             const btn = document.createElement('button');
             btn.className = `py-4 rounded-3xl border-2 transition-all ${currentStatus === s.key ? 'border-[#874FC2] bg-[#874FC2]/10' : 'border-transparent hover:bg-stone-100'}`;
             btn.innerHTML = `<div class="text-4xl">${s.emoji}</div><div class="text-xs mt-1">${s.label}</div>`;
-            btn.onclick = () => { currentStatus = s.key; renderStatusOptions(); };
-            container.appendChild(btn);
-        });
-    }
-
-    function handlePhotoSelect(e) {
-        const file = e.target.files[0];
-        if (!file) return;
-        const reader = new FileReader();
-        reader.onload = ev => {
-            currentPhotoBase64 = ev.target.result;
-            document.getElementById('preview-img').src = currentPhotoBase64;
-            document.getElementById('photo-preview').classList.remove('hidden');
-            document.getElementById('photo-upload-area').classList.add('hidden');
-        };
-        reader.readAsDataURL(file);
-    }
-
-    function removePhoto() {
-        currentPhotoBase64 = null;
-        document.getElementById('photo-preview').classList.add('hidden');
-        document.getElementById('photo-upload-area').classList.remove('hidden');
-    }
-
-    function saveRecord() {
-        const notes = document.getElementById('notes-input').value.trim();
-        if (!currentPhotoBase64 && !currentEditId) return alert("請上傳照片！");
-        
-        if (currentEditId) {
-            const record = records.find(r => r.id === currentEditId);
-            if (record) {
-                record.notes = notes || "無備註";
-                if (currentPhotoBase64) record.image = currentPhotoBase64;
-                record.status = currentStatus;
-            }
-        } else {
-            records.unshift({
-                id: 'rec_' + Date.now(),
-                image: currentPhotoBase64,
-                notes: notes || "無備註",
-                status: currentStatus,
-                timestamp: Date.now()
-            });
-        }
-        saveToStorage();
-        hideAddModal();
-        renderAll();
-        showToast(currentEditId ? "✅ 更新成功" : "✅ 新增成功！");
-    }
-
-    function showToast(msg) {
-        const toast = document.getElementById('toast');
-        document.getElementById('toast-text').textContent = msg;
-        toast.classList.remove('hidden');
-        setTimeout(() => toast.classList.add('hidden'), 2800);
-    }
-
-    function showDetail(id) {
-        const sorted = [...records].sort((a,b) => b.timestamp - a.timestamp);
-        detailRecordIds = sorted.map(r => r.id);
-        currentDetailId = id;
-        
-        const record = records.find(r => r.id === id);
-        document.getElementById('detail-img').src = record.image;
-        document.getElementById('detail-notes').textContent = record.notes;
-        
-        // 狀態顯示
-        document.getElementById('detail-status').innerHTML = `
-            <div class="inline-flex items-center gap-2 px-5 py-2 rounded-3xl bg-${record.status === 'paid' ? 'emerald' : record.status === 'shipped' ? 'blue' : 'purple'}-100 text-${record.status === 'paid' ? 'emerald' : record.status === 'shipped' ? 'blue' : 'purple'}-700">
-                ${getStatusEmoji(record.status)} ${getStatusLabel(record.status)}
-            </div>
-        `;
-        
-        document.getElementById('detail-modal').classList.remove('hidden');
-    }
-
-    function getStatusEmoji(status) {
-        const found = STATUS_OPTIONS.find(s => s.key === status);
-        return found ? found.emoji : '';
-    }
-
-    function getStatusLabel(status) {
-        const found = STATUS_OPTIONS.find(s => s.key === status);
-        return found ? found.label : '';
-    }
-
-    function hideDetailModal() {
-        document.getElementById('detail-modal').classList.add('hidden');
-    }
-
-    function prevRecord() {
-        const idx = detailRecordIds.indexOf(currentDetailId);
-        if (idx > 0) showDetail(detailRecordIds[idx-1]);
-    }
-
-    function nextRecord() {
-        const idx = detailRecordIds.indexOf(currentDetailId);
-        if (idx < detailRecordIds.length - 1) showDetail(detailRecordIds[idx+1]);
-    }
-
-    function editCurrentRecord() {
-        const record = records.find(r => r.id === currentDetailId);
-        if (record) {
-            hideDetailModal();
-            setTimeout(() => showAddModal(record), 300);
-        }
-    }
-
-    function deleteCurrentRecord() {
-        if (confirm("確定刪除？")) {
-            records = records.filter(r => r.id !== currentDetailId);
-            saveToStorage();
-            hideDetailModal();
-            renderAll();
-        }
-    }
-
-    function changeSortOrder() { renderAll(); }
-
-    function showBackupModal() {
-        document.getElementById('backup-modal').classList.remove('hidden');
-    }
-
-    function hideBackupModal() {
-        document.getElementById('backup-modal').classList.add('hidden');
-    }
-
-    function exportData() {
-        if (records.length === 0) return alert("沒有資料");
-        const str = JSON.stringify(records, null, 2);
-        const uri = 'data:application/json;charset=utf-8,' + encodeURIComponent(str);
-        const a = document.createElement('a');
-        a.href = uri;
-        a.download = `backup_${new Date().toISOString().slice(0,10)}.json`;
-        a.click();
-        hideBackupModal();
-    }
-
-    function importData(e) {
-        const file = e.target.files[0];
-        if (!file) return;
-        const reader = new FileReader();
-        reader.onload = ev => {
-            try {
-                records = JSON.parse(ev.target.result);
-                saveToStorage();
-                renderAll();
-                hideBackupModal();
-                showToast("✅ 匯入成功！");
-            } catch(err) { alert("檔案格式錯誤"); }
-        };
-        reader.readAsText(file);
-        e.target.value = '';
-    }
-
-    window.onload = () => {
-        loadRecords();
-        switchTab(0);
-    };
-</script>
-</body>
-</html>
+            btn.onclick = () => { currentStatus = s.key; renderStatusOptions();
