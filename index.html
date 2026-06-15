@@ -359,22 +359,21 @@
             }
 
             console.log("資料已更新，準備存入 LocalStorage");
-
             saveToStorage();
-            
             console.log("LocalStorage 已保存");
 
+            // 關鍵修復：延遲關閉和刷新，解決手機/iPad 時序問題
             hideAddModal();
-            renderAll();
             
-            console.log("頁面已刷新");
-
-            showToast(currentEditId ? "✅ 更新成功" : "✅ 新增成功！");
-            
-            currentEditId = null;
-            currentPhotoBase64 = null;
-            
-            console.log("=== 保存完成 ===");
+            setTimeout(() => {
+                renderAll();
+                showToast("✅ 新增成功！");
+                console.log("=== 保存完成 ===");
+                
+                // 重置
+                currentEditId = null;
+                currentPhotoBase64 = null;
+            }, 300);
 
         } catch (err) {
             console.error("保存錯誤詳情:", err);
