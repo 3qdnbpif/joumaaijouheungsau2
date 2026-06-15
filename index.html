@@ -322,22 +322,22 @@
     }
 
     // === 關鍵修復：saveRecord ===
-        function saveRecord() {
+            function saveRecord() {
         const notes = document.getElementById('notes-input').value.trim();
         
-        // 強制檢查並記錄狀態
         console.log("=== 保存前檢查 ===");
         console.log("currentPhotoBase64 存在:", !!currentPhotoBase64);
         console.log("currentEditId:", currentEditId);
-        
+
         if (!currentPhotoBase64 && !currentEditId) {
             alert("請上傳照片！");
             return;
         }
 
         try {
+            console.log("開始執行保存...");
+
             if (currentEditId) {
-                // 編輯模式
                 const record = records.find(r => r.id === currentEditId);
                 if (record) {
                     record.notes = notes || "無備註";
@@ -345,7 +345,6 @@
                     record.status = currentStatus;
                 }
             } else {
-                // 新增模式
                 if (!currentPhotoBase64) {
                     alert("請上傳照片！");
                     return;
@@ -359,17 +358,26 @@
                 });
             }
 
+            console.log("資料已更新，準備存入 LocalStorage");
+
             saveToStorage();
+            
+            console.log("LocalStorage 已保存");
+
             hideAddModal();
             renderAll();
+            
+            console.log("頁面已刷新");
+
             showToast(currentEditId ? "✅ 更新成功" : "✅ 新增成功！");
             
-            // 徹底重置
             currentEditId = null;
             currentPhotoBase64 = null;
             
+            console.log("=== 保存完成 ===");
+
         } catch (err) {
-            console.error("保存錯誤:", err);
+            console.error("保存錯誤詳情:", err);
             alert("保存失敗，請重新上傳一次照片後再試");
         }
     }
