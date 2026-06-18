@@ -217,30 +217,28 @@
         renderAll();
     }
 
-        function saveToStorage() {
+            function saveToStorage() {
         try {
             const dataStr = JSON.stringify(records);
-            console.log("準備寫入 LocalStorage，資料長度:", dataStr.length);
-            
+            console.log("準備寫入 LocalStorage，大小:", (dataStr.length / 1024).toFixed(1) + "KB");
+
             localStorage.setItem('purchaseRecords', dataStr);
-            
-            // 驗證是否真的寫入成功
+
+            // 驗證
             const saved = localStorage.getItem('purchaseRecords');
-            if (saved && saved.length === dataStr.length) {
+            if (saved && saved.length > 0) {
                 console.log("✅ LocalStorage 寫入成功");
                 return true;
             } else {
-                console.error("❌ LocalStorage 寫入後驗證失敗");
+                console.error("❌ 寫入後讀取失敗");
                 return false;
             }
         } catch (err) {
-            console.error("❌ LocalStorage 寫入異常:", err.name, err.message);
+            console.error("LocalStorage 錯誤:", err.name, err.message);
             if (err.name === "QuotaExceededError") {
-                alert("儲存空間已滿，請先刪除一些舊紀錄");
-            } else if (err.name === "SecurityError") {
-                alert("無法存取 LocalStorage（可能處於無痕模式）");
+                alert("儲存空間已滿！請先刪除一些舊紀錄再試");
             } else {
-                alert("LocalStorage 寫入失敗：" + err.message);
+                alert("LocalStorage 寫入失敗: " + err.message);
             }
             return false;
         }
@@ -347,7 +345,7 @@
     }
 
     // === 關鍵修復：saveRecord ===
-        function saveRecord() {
+            function saveRecord() {
         const notes = document.getElementById('notes-input').value.trim();
         
         console.log("=== 保存前檢查 ===");
@@ -360,8 +358,6 @@
         }
 
         try {
-            console.log("開始執行保存...");
-
             if (currentEditId) {
                 const record = records.find(r => r.id === currentEditId);
                 if (record) {
@@ -383,28 +379,22 @@
                 });
             }
 
-            console.log("資料已更新，準備存入 LocalStorage");
-            
             const success = saveToStorage();
-            
-            if (!success) {
-                alert("LocalStorage 寫入失敗");
-                return;
-            }
+            if (!success) return;
 
             hideAddModal();
             
+            // iOS 重要延遲
             setTimeout(() => {
                 renderAll();
                 showToast("✅ 新增成功！");
-                console.log("=== 保存完成 ===");
                 currentEditId = null;
                 currentPhotoBase64 = null;
-            }, 400);
+            }, 500);
 
         } catch (err) {
             console.error("保存過程異常:", err);
-            alert("保存失敗，請重新上傳一次照片後再試");
+            alert("保存失敗，請重新上傳照片後再試一次");
         }
     }
 
