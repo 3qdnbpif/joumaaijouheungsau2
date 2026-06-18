@@ -322,7 +322,7 @@
     }
 
     // === 關鍵修復：saveRecord ===
-            function saveRecord() {
+    function saveRecord() {
         const notes = document.getElementById('notes-input').value.trim();
         
         console.log("=== 保存前檢查 ===");
@@ -359,21 +359,23 @@
             }
 
             console.log("資料已更新，準備存入 LocalStorage");
+            
+            // 強化 LocalStorage 寫入
             saveToStorage();
             console.log("LocalStorage 已保存");
 
-            // 關鍵修復：延遲關閉和刷新，解決手機/iPad 時序問題
+            // iOS Safari 專用延遲處理
             hideAddModal();
             
             setTimeout(() => {
                 renderAll();
+                console.log("頁面已刷新");
                 showToast("✅ 新增成功！");
                 console.log("=== 保存完成 ===");
                 
-                // 重置
                 currentEditId = null;
                 currentPhotoBase64 = null;
-            }, 300);
+            }, 400);   // 增加延遲以確保 iOS 穩定
 
         } catch (err) {
             console.error("保存錯誤詳情:", err);
